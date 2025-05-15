@@ -1,0 +1,98 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
+
+namespace VFK.Extensions.Logging;
+
+public static class LoggingExtension
+{
+    public static ILoggingBuilder AddVfkLogging(this ILoggingBuilder loggingBuilder)
+    {
+        loggingBuilder.Services.AddSerilog((services, loggerConfiguration) =>
+        {
+            var config = services.GetRequiredService<IConfiguration>();
+            var (
+                appName,
+                minimumLevelOverrides,
+                betterStackEndpoint,
+                betterStackSourceToken,
+                betterStackMinimumLevel,
+                consoleMinimumLevel,
+                version) = GetConfigurationValues(config);
+
+            loggerConfiguration
+                //.ReadFrom.Configuration(config)
+                .MinimumLevel.Debug()
+                .Enrich.FromLogContext()
+                .Enrich.WithEnvironmentName()
+                .Enrich.WithProperty(Constants.Properties.AppName, appName)
+                .Enrich.WithProperty(Constants.Properties.Version, version)
+                .Enrich.FromGlobalLogContext()
+                .WriteTo.Console(restrictedToMinimumLevel: consoleMinimumLevel);
+
+            foreach (var (key, level) in minimumLevelOverrides)
+            {
+                loggerConfiguration.MinimumLevel.Override(key, level);
+            }
+
+            if (betterStackEndpoint is not null && betterStackSourceToken is not null)
+            {
+                loggerConfiguration
+                    .WriteTo.BetterStack(
+                        betterStackSourceToken,
+                        betterStackEndpoint,
+                        restrictedToMinimumLevel: betterStackMinimumLevel);
+            }
+        });
+        
+        return loggingBuilder;
+    }
+
+    private static (string appName, List<(string key, LogEventLevel level)> minimumLevelOverrides,
+        string? betterStackEndpoint, string? betterStackSourceToken, LogEventLevel betterStackMinimumLevel,
+        LogEventLevel consoleMinimumLevel, string version) GetConfigurationValues(IConfiguration config)
+    {
+        Constants.ConfigurationKeys configurationKeys = new(config);
+        
+        var appName = config[configurationKeys.AppName] ?? throw new InvalidOperationException($"Missing {configurationKeys.AppName} in configuration");
+        var minimumLevelOverrideKey = configurationKeys.SerilogMinimumLevelOverrideKey;
+
+        List<(string key, LogEventLevel level)> minimumLevelOverrides = new();
+        foreach (var child in config.AsEnumerable().Where(c => c.Key.StartsWith(minimumLevelOverrideKey)))
+        {
+            var key = child.Key.Replace(minimumLevelOverrideKey, "");
+            if (!Enum.TryParse(child.Value, out LogEventLevel level))
+            {
+                throw new InvalidOperationException($"Invalid value for {child.Key} in configuration");
+            }
+
+            minimumLevelOverrides.Add((key, level));
+        }
+        
+        var betterStackEndpoint = config[configurationKeys.BetterStackEndpoint];
+        var betterStackSourceToken = config[configurationKeys.BetterStackSourceToken];
+        
+        if (!Enum.TryParse(configurationKeys.BetterStackMinimumLevel, out LogEventLevel betterStackMinimumLevel))
+        {
+            betterStackMinimumLevel = LogEventLevel.Information;
+        }
+        
+        if (!Enum.TryParse(configurationKeys.ConsoleMinimumLevel, out LogEventLevel consoleMinimumLevel))
+        {
+            consoleMinimumLevel = LogEventLevel.Debug;
+        }
+        
+        var version = config[configurationKeys.Version] ?? throw new InvalidOperationException($"Missing {configurationKeys.Version} in configuration");
+        
+        return (
+            appName,
+            minimumLevelOverrides,
+            betterStackEndpoint,
+            betterStackSourceToken,
+            betterStackMinimumLevel,
+            consoleMinimumLevel,
+            version);
+    }
+}
