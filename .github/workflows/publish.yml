@@ -1,0 +1,32 @@
+name: publish
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_PATH: VFK.Extensions.Logging/VFK.Extensions.Logging.csproj
+  PROJECT_RELEASE_PATH: VFK.Extensions.Logging/bin/Release
+  NUGET_SOURCE: https://api.nuget.org/v3/index.json
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    #Build/pack the project
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build and pack project # <GeneratePackageOnBuild>true</GeneratePackageOnBuild> must be added to .csproj
+      run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release
+
+    - name: Publish NuGet package to GitHub
+      run: dotnet nuget push ${{ env.PROJECT_RELEASE_PATH }}/*.nupkg --api-key ${{ secrets.NUGET_TOKEN }}  --source ${{ env.NUGET_SOURCE }}
