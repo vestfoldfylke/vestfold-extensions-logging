@@ -14,11 +14,11 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     #Build/pack the project
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
@@ -28,5 +28,5 @@ jobs:
     - name: Build and pack project # <GeneratePackageOnBuild>true</GeneratePackageOnBuild> must be added to .csproj
       run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release
 
-    - name: Publish NuGet package to GitHub
+    - name: Publish NuGet package to NuGet.org
       run: dotnet nuget push ${{ env.PROJECT_RELEASE_PATH }}/*.nupkg --api-key ${{ secrets.NUGET_TOKEN }}  --source ${{ env.NUGET_SOURCE }}
