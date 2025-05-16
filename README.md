@@ -1,3 +1,6 @@
+![NuGet Version](https://img.shields.io/nuget/v/VFK.Extensions.Logging.svg)
+![NuGet Downloads](https://img.shields.io/nuget/dt/VFK.Extensions.Logging.svg)
+
 # VFK.Extensions.Logging
 
 Contains builder extensions for configuring logging in a dotnet core application.
