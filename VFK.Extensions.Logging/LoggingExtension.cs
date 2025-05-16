@@ -57,8 +57,8 @@ public static class LoggingExtension
     {
         Constants.ConfigurationKeys configurationKeys = new(config);
         
-        var appName = Assembly.GetEntryAssembly()?.GetName().Name
-            ?? config[configurationKeys.AppName]
+        var appName = config[configurationKeys.AppName]
+            ?? Assembly.GetEntryAssembly()?.GetName().Name
             ?? throw new InvalidOperationException($"Missing {configurationKeys.AppName} in configuration and couldn't get Name from Assembly");
         var minimumLevelOverrideKey = configurationKeys.SerilogMinimumLevelOverrideKey;
 
@@ -87,19 +87,9 @@ public static class LoggingExtension
             consoleMinimumLevel = LogEventLevel.Debug;
         }
         
-        var informationalVersion = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-        if (informationalVersion is not null)
-        {
-            var versionParts = informationalVersion.Split("+");
-            if (versionParts.Length > 1)
-            {
-                informationalVersion = versionParts[0];
-            }
-        }
-        
-        var version = informationalVersion
-                      ?? config[configurationKeys.Version]
-                      ?? throw new InvalidOperationException($"Missing InformationalVersion in .csproj and {configurationKeys.Version} not specified in configuration");
+        var version = config[configurationKeys.Version]
+            ?? GetInformationalVersion()
+            ?? throw new InvalidOperationException($"Missing InformationalVersion in .csproj and {configurationKeys.Version} not specified in configuration");
         
         return (
             appName,
@@ -109,5 +99,23 @@ public static class LoggingExtension
             betterStackMinimumLevel,
             consoleMinimumLevel,
             version);
+    }
+
+    private static string? GetInformationalVersion()
+    {
+        var informationalVersion = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+        if (informationalVersion is null)
+        {
+            return informationalVersion;
+        }
+        
+        var versionParts = informationalVersion.Split("+");
+        if (versionParts.Length > 1)
+        {
+            informationalVersion = versionParts[0];
+        }
+
+        return informationalVersion;
     }
 }
