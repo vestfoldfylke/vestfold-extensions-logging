@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,7 +21,7 @@ public static class LoggingExtension
                 betterStackSourceToken,
                 betterStackMinimumLevel,
                 consoleMinimumLevel,
-                version) = GetConfigurationValues(config);
+                version) = GetLoggingValues(config);
 
             loggerConfiguration
                 //.ReadFrom.Configuration(config)
@@ -52,14 +53,16 @@ public static class LoggingExtension
 
     private static (string appName, List<(string key, LogEventLevel level)> minimumLevelOverrides,
         string? betterStackEndpoint, string? betterStackSourceToken, LogEventLevel betterStackMinimumLevel,
-        LogEventLevel consoleMinimumLevel, string version) GetConfigurationValues(IConfiguration config)
+        LogEventLevel consoleMinimumLevel, string version) GetLoggingValues(IConfiguration config)
     {
         Constants.ConfigurationKeys configurationKeys = new(config);
         
-        var appName = config[configurationKeys.AppName] ?? throw new InvalidOperationException($"Missing {configurationKeys.AppName} in configuration");
+        var appName = Assembly.GetEntryAssembly()?.GetName().Name
+            ?? config[configurationKeys.AppName]
+            ?? throw new InvalidOperationException($"Missing {configurationKeys.AppName} in configuration and couldn't get Name from Assembly");
         var minimumLevelOverrideKey = configurationKeys.SerilogMinimumLevelOverrideKey;
 
-        List<(string key, LogEventLevel level)> minimumLevelOverrides = new();
+        List<(string key, LogEventLevel level)> minimumLevelOverrides = [];
         foreach (var child in config.AsEnumerable().Where(c => c.Key.StartsWith(minimumLevelOverrideKey)))
         {
             var key = child.Key.Replace(minimumLevelOverrideKey, "");
@@ -84,7 +87,19 @@ public static class LoggingExtension
             consoleMinimumLevel = LogEventLevel.Debug;
         }
         
-        var version = config[configurationKeys.Version] ?? throw new InvalidOperationException($"Missing {configurationKeys.Version} in configuration");
+        var informationalVersion = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        if (informationalVersion is not null)
+        {
+            var versionParts = informationalVersion.Split("+");
+            if (versionParts.Length > 1)
+            {
+                informationalVersion = versionParts[0];
+            }
+        }
+        
+        var version = informationalVersion
+                      ?? config[configurationKeys.Version]
+                      ?? throw new InvalidOperationException($"Missing InformationalVersion in .csproj and {configurationKeys.Version} not specified in configuration");
         
         return (
             appName,

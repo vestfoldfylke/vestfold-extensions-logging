@@ -1,10 +1,14 @@
 # VFK.Extensions.Logging
 
-Contains builder extensions for configuring logging in a VFK application.
+Contains builder extensions for configuring logging in a dotnet core application.
 
 ## Usage in an Azure Function / Azure Web App
 
 Add the following to your `local.settings.json` file:
+
+> Optional properties:
+> - `AppName`: If not set, the assembly name will be used
+> - `Version`: If not set, the assembly version will be used
 
 ```json
 {
@@ -36,6 +40,10 @@ Example: Add an override for everything in the `Microsoft` namespace to log from
 
 Add the following to your `appsettings.json` file:
 
+> Optional properties:
+> - `AppName`: If not set, the assembly name will be used
+> - `Version`: If not set, the assembly version will be used
+
 ```json
 {
   "AppName": "Name of your application, used as a property in the logs",
@@ -63,7 +71,7 @@ Example: Add an override for everything in the `Microsoft` namespace to log from
 }
 ```
 
-## Setting up the logging for a Azure Function / Azure Web App
+## Setting up logging for an Azure Function / Azure Web App
 
 ```csharp
 var builder = FunctionsApplication.CreateBuilder(args);
@@ -72,7 +80,7 @@ builder.Logging.AddVfkLogging();
 builder.Build().Run();
 ```
 
-## Setting up the logging for a HostBuilder (Console app, ClassLibrary, etc.)
+## Setting up logging for a HostBuilder (Console app, ClassLibrary, etc.)
 
 ```csharp
 public static async Task Main(string[] args)
@@ -86,7 +94,7 @@ public static async Task Main(string[] args)
 }
 ```
 
-## Setting up for WebApplicationBuilder (WebAPI, Blazor, etc.)
+## Setting up logging for a WebApplicationBuilder (WebAPI, Blazor, etc.)
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
