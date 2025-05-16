@@ -23,6 +23,10 @@ Add the following to your `local.settings.json` file:
     "BetterStack_SourceToken": "Your BetterStack source token",
     "BetterStack_Endpoint": "https://foo.betterstackdata.com",
     "BetterStack_MinimumLevel": "Information",
+    "MicrosoftTeams_WebhookUrl": "microsoft teams webhook url | microsoft power automate flow url if UseWorkflows is set to true",
+    "MicrosoftTeams_UseWorkflows": "true if Microsoft Power Automate flow is used, false if Microsoft Teams webhook is used (default is true)",
+    "MicrosoftTeams_TitleTemplate": "The title template of the card",
+    "MicrosoftTeams_MinimumLevel": "Warning",
     "Version": "1.0.0"
   }
 }
@@ -54,6 +58,12 @@ Add the following to your `appsettings.json` file:
     "SourceToken": "Your BetterStack source token",
     "Endpoint": "https://foo.betterstackdata.com",
     "MinimumLevel": "Information"
+  },
+  "MicrosoftTeams": {
+    "WebhookUrl": "microsoft teams webhook url | microsoft power automate flow url if UseWorkflows is set to true",
+    "UseWorkflows": "true if Microsoft Power Automate flow is used, false if Microsoft Teams webhook is used (default is true)",
+    "TitleTemplate": "The title template of the card",
+    "MinimumLevel": "Warning"
   },
   "Version": "1.0.0"
 }

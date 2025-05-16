@@ -20,6 +20,10 @@ public static class LoggingExtension
                 betterStackEndpoint,
                 betterStackSourceToken,
                 betterStackMinimumLevel,
+                microsoftTeamsWebhookUrl,
+                microsoftTeamsUseWorkflows,
+                microsoftTeamsTitleTemplate,
+                microsoftTeamsMinimumLevel,
                 consoleMinimumLevel,
                 version) = GetLoggingValues(config);
 
@@ -46,6 +50,16 @@ public static class LoggingExtension
                         betterStackEndpoint,
                         restrictedToMinimumLevel: betterStackMinimumLevel);
             }
+
+            if (microsoftTeamsWebhookUrl is not null)
+            {
+                loggerConfiguration
+                    .WriteTo.MicrosoftTeams(
+                        microsoftTeamsWebhookUrl,
+                        usePowerAutomateWorkflows: microsoftTeamsUseWorkflows,
+                        titleTemplate: microsoftTeamsTitleTemplate ?? "",
+                        restrictedToMinimumLevel: microsoftTeamsMinimumLevel);
+            }
         });
         
         return loggingBuilder;
@@ -53,6 +67,7 @@ public static class LoggingExtension
 
     private static (string appName, List<(string key, LogEventLevel level)> minimumLevelOverrides,
         string? betterStackEndpoint, string? betterStackSourceToken, LogEventLevel betterStackMinimumLevel,
+        string? microsoftTeamsWebhookUrl, bool microsoftTeamsUseWorkflows, string? microsoftTeamsTitleTemplate, LogEventLevel microsoftTeamsMinimumLevel,
         LogEventLevel consoleMinimumLevel, string version) GetLoggingValues(IConfiguration config)
     {
         Constants.ConfigurationKeys configurationKeys = new(config);
@@ -60,6 +75,11 @@ public static class LoggingExtension
         var appName = config[configurationKeys.AppName]
             ?? Assembly.GetEntryAssembly()?.GetName().Name
             ?? throw new InvalidOperationException($"Missing {configurationKeys.AppName} in configuration and couldn't get Name from Assembly");
+        
+        var version = config[configurationKeys.Version]
+                      ?? GetInformationalVersion()
+                      ?? throw new InvalidOperationException($"Missing InformationalVersion in .csproj and {configurationKeys.Version} not specified in configuration");
+        
         var minimumLevelOverrideKey = configurationKeys.SerilogMinimumLevelOverrideKey;
 
         List<(string key, LogEventLevel level)> minimumLevelOverrides = [];
@@ -74,22 +94,31 @@ public static class LoggingExtension
             minimumLevelOverrides.Add((key, level));
         }
         
-        var betterStackEndpoint = config[configurationKeys.BetterStackEndpoint];
-        var betterStackSourceToken = config[configurationKeys.BetterStackSourceToken];
-        
-        if (!Enum.TryParse(configurationKeys.BetterStackMinimumLevel, out LogEventLevel betterStackMinimumLevel))
-        {
-            betterStackMinimumLevel = LogEventLevel.Information;
-        }
-        
-        if (!Enum.TryParse(configurationKeys.ConsoleMinimumLevel, out LogEventLevel consoleMinimumLevel))
+        if (!Enum.TryParse(config[configurationKeys.ConsoleMinimumLevel], out LogEventLevel consoleMinimumLevel))
         {
             consoleMinimumLevel = LogEventLevel.Debug;
         }
         
-        var version = config[configurationKeys.Version]
-            ?? GetInformationalVersion()
-            ?? throw new InvalidOperationException($"Missing InformationalVersion in .csproj and {configurationKeys.Version} not specified in configuration");
+        var betterStackEndpoint = config[configurationKeys.BetterStackEndpoint];
+        var betterStackSourceToken = config[configurationKeys.BetterStackSourceToken];
+        
+        if (!Enum.TryParse(config[configurationKeys.BetterStackMinimumLevel], out LogEventLevel betterStackMinimumLevel))
+        {
+            betterStackMinimumLevel = LogEventLevel.Information;
+        }
+        
+        var microsoftTeamsWebhookUrl = config[configurationKeys.MicrosoftTeamsWebhookUrl];
+        var microsoftTeamsTitleTemplate = config[configurationKeys.MicrosoftTeamsTitleTemplate];
+        
+        if (!bool.TryParse(config[configurationKeys.MicrosoftTeamsUseWorkflows], out var microsoftTeamsUseWorkflows))
+        {
+            microsoftTeamsUseWorkflows = true;
+        }
+        
+        if (!Enum.TryParse(config[configurationKeys.MicrosoftTeamsMinimumLevel], out LogEventLevel microsoftTeamsMinimumLevel))
+        {
+            microsoftTeamsMinimumLevel = LogEventLevel.Warning;
+        }
         
         return (
             appName,
@@ -97,6 +126,10 @@ public static class LoggingExtension
             betterStackEndpoint,
             betterStackSourceToken,
             betterStackMinimumLevel,
+            microsoftTeamsWebhookUrl,
+            microsoftTeamsUseWorkflows,
+            microsoftTeamsTitleTemplate,
+            microsoftTeamsMinimumLevel,
             consoleMinimumLevel,
             version);
     }
