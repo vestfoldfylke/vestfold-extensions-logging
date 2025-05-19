@@ -27,7 +27,7 @@ internal static class Constants
         internal string MicrosoftTeamsTitleTemplate => GetValue("MicrosoftTeams:TitleTemplate");
         internal string MicrosoftTeamsMinimumLevel => GetValue("MicrosoftTeams:MinimumLevel");
 
-        private string GetValue(string key) => configuration["AZURE_FUNCTIONS_ENVIRONMENT"] is not null
+        private string GetValue(string key) => configuration["FUNCTIONS_WORKER_RUNTIME"] is not null
             ? key.Replace(':', '_')
             : key;
     }
