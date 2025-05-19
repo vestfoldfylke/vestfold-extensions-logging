@@ -7,7 +7,7 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
         <PackageId>VFK.Extensions.Logging</PackageId>
-        <Version>1.0.3</Version>
+        <Version>1.0.4</Version>
         <Authors>Rune Moskvil Lyngås</Authors>
         <Company>Vestfold fylkeskommune</Company>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
