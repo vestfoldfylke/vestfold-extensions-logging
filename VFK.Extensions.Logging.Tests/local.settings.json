@@ -1,0 +1,15 @@
+{
+  "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+  "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+  "AppName": "Test",
+  "Version": "1.2.3",
+  "Serilog_MinimumLevel_Override_Microsoft_Hosting": "Error",
+  "Serilog_Console_MinimumLevel": "Information",
+  "BetterStack_Endpoint": "https://foo.betterstackdata.com",
+  "BetterStack_SourceToken": "Your BetterStack source token",
+  "BetterStack_MinimumLevel": "Debug",
+  "MicrosoftTeams_WebhookUrl": "https://outlook.office.com/webhook/...",
+  "MicrosoftTeams_UseWorkflows": "true",
+  "MicrosoftTeams_TitleTemplate": "Test",
+  "MicrosoftTeams_MinimumLevel": "Error"
+}
