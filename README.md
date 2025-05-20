@@ -7,6 +7,11 @@ Contains builder extensions for configuring logging in a dotnet core application
 
 ## Usage in an Azure Function / Azure Web App
 
+> [!IMPORTANT]
+> Azure App Services does not allow periods (.) in the app setting names.<br />
+> As a workaround, use an underscore (_) instead of a period (.) in the app setting names, and it will be handled correctly in the code.<br />
+> If an app setting contains a period, the period is replaced with an underscore (_) in the container.
+
 Add the following to your `local.settings.json` file:
 
 > Optional properties:
@@ -34,11 +39,15 @@ Add the following to your `local.settings.json` file:
 
 ### Override minimum levels for certain namespaces
 
-Example: Add an override for everything in the `Microsoft` namespace to log from **Warning** and higher
+> [!IMPORTANT]
+> If you want to override a namespace which contains a period (.), for instance `Microsoft.Hosting`,
+> you need to use an underscore (_) since Azure App Services does not allow periods (.) in the app setting names.
+
+Example: Add an override for everything in the `Microsoft.Hosting` namespace to log from **Warning** and higher
 ```json
 {
   "Values": {
-    "Serilog_MinimumLevel_Override_Microsoft": "Warning"
+    "Serilog_MinimumLevel_Override_Microsoft_Hosting": "Warning"
   }
 }
 ```
@@ -71,13 +80,13 @@ Add the following to your `appsettings.json` file:
 
 ### Override minimum levels for certain namespaces
 
-Example: Add an override for everything in the `Microsoft` namespace to log from **Warning** and higher
+Example: Add an override for everything in the `Microsoft.Hosting` namespace to log from **Warning** and higher
 ```json
 {
   "Serilog": {
     "MinimumLevel": {
       "Override": {
-        "Microsoft": "Warning"
+        "Microsoft.Hosting": "Warning"
       }
     }
   }

@@ -65,7 +65,7 @@ public static class LoggingExtension
         return loggingBuilder;
     }
 
-    private static (string appName, List<(string key, LogEventLevel level)> minimumLevelOverrides,
+    public static (string appName, List<(string key, LogEventLevel level)> minimumLevelOverrides,
         string? betterStackEndpoint, string? betterStackSourceToken, LogEventLevel betterStackMinimumLevel,
         string? microsoftTeamsWebhookUrl, bool microsoftTeamsUseWorkflows, string? microsoftTeamsTitleTemplate, LogEventLevel microsoftTeamsMinimumLevel,
         LogEventLevel consoleMinimumLevel, string version) GetLoggingValues(IConfiguration config)
@@ -85,7 +85,7 @@ public static class LoggingExtension
         List<(string key, LogEventLevel level)> minimumLevelOverrides = [];
         foreach (var child in config.AsEnumerable().Where(c => c.Key.StartsWith(minimumLevelOverrideKey)))
         {
-            var key = child.Key.Replace(minimumLevelOverrideKey, "");
+            var key = configurationKeys.ConvertAzureFriendlyKeyName(child.Key.Replace(minimumLevelOverrideKey, ""));
             if (!Enum.TryParse(child.Value, out LogEventLevel level))
             {
                 throw new InvalidOperationException($"Invalid value for {child.Key} in configuration");
