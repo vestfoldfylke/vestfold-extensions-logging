@@ -7,6 +7,7 @@ env:
   PROJECT_PATH: VFK.Extensions.Logging/VFK.Extensions.Logging.csproj
   PROJECT_RELEASE_PATH: VFK.Extensions.Logging/bin/Release
   NUGET_SOURCE: https://api.nuget.org/v3/index.json
+  DOTNET_VERSION: 8.0.x
 
 jobs:
   build:
@@ -17,13 +18,16 @@ jobs:
       uses: actions/checkout@v4
 
     #Build/pack the project
-    - name: Setup .NET
+    - name: Setup .NET ${{ env.DOTNET_VERSION }}
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore dependencies
       run: dotnet restore
+
+    - name: Test Project
+      run: dotnet test --configuration Release
 
     - name: Build and pack project # <GeneratePackageOnBuild>true</GeneratePackageOnBuild> must be added to .csproj
       run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release
