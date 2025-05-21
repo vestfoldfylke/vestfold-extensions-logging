@@ -12,22 +12,25 @@ internal static class Constants
     
     internal class ConfigurationKeys(IConfiguration configuration)
     {
-        internal string AppName => GetValue("AppName");
-        internal string Version => GetValue("Version");
+        internal string AppName => GetKeyName("AppName");
+        internal string Version => GetKeyName("Version");
         
-        internal string ConsoleMinimumLevel => GetValue("Serilog:Console:MinimumLevel");
-        internal string SerilogMinimumLevelOverrideKey => GetValue("Serilog:MinimumLevel:Override:");
+        internal string ConsoleMinimumLevel => GetKeyName("Serilog:Console:MinimumLevel");
+        internal string SerilogMinimumLevelOverrideKey => GetKeyName("Serilog:MinimumLevel:Override:");
         
-        internal string BetterStackSourceToken => GetValue("BetterStack:SourceToken");
-        internal string BetterStackEndpoint => GetValue("BetterStack:Endpoint");
-        internal string BetterStackMinimumLevel => GetValue("BetterStack:MinimumLevel");
+        internal string BetterStackSourceToken => GetKeyName("BetterStack:SourceToken");
+        internal string BetterStackEndpoint => GetKeyName("BetterStack:Endpoint");
+        internal string BetterStackMinimumLevel => GetKeyName("BetterStack:MinimumLevel");
         
-        internal string MicrosoftTeamsWebhookUrl => GetValue("MicrosoftTeams:WebhookUrl");
-        internal string MicrosoftTeamsUseWorkflows => GetValue("MicrosoftTeams:UseWorkflows");
-        internal string MicrosoftTeamsTitleTemplate => GetValue("MicrosoftTeams:TitleTemplate");
-        internal string MicrosoftTeamsMinimumLevel => GetValue("MicrosoftTeams:MinimumLevel");
+        internal string MicrosoftTeamsWebhookUrl => GetKeyName("MicrosoftTeams:WebhookUrl");
+        internal string MicrosoftTeamsUseWorkflows => GetKeyName("MicrosoftTeams:UseWorkflows");
+        internal string MicrosoftTeamsTitleTemplate => GetKeyName("MicrosoftTeams:TitleTemplate");
+        internal string MicrosoftTeamsMinimumLevel => GetKeyName("MicrosoftTeams:MinimumLevel");
 
-        private string GetValue(string key) => configuration["FUNCTIONS_WORKER_RUNTIME"] is not null
+        internal string ConvertAzureFriendlyKeyName(string key) =>
+            key.Replace('_', '.');
+
+        private string GetKeyName(string key) => configuration["FUNCTIONS_WORKER_RUNTIME"] is not null
             ? key.Replace(':', '_')
             : key;
     }
