@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace VFK.Extensions.Logging;
+namespace Vestfold.Extensions.Logging;
 
 internal static class Constants
 {

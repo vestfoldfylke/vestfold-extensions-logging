@@ -5,11 +5,11 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 
-namespace VFK.Extensions.Logging;
+namespace Vestfold.Extensions.Logging;
 
 public static class LoggingExtension
 {
-    public static ILoggingBuilder AddVfkLogging(this ILoggingBuilder loggingBuilder)
+    public static ILoggingBuilder AddVestfoldLogging(this ILoggingBuilder loggingBuilder)
     {
         loggingBuilder.Services.AddSerilog((services, loggerConfiguration) =>
         {

@@ -33,7 +33,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\VFK.Extensions.Logging\VFK.Extensions.Logging.csproj" />
+      <ProjectReference Include="..\Vestfold.Extensions.Logging\Vestfold.Extensions.Logging.csproj" />
     </ItemGroup>
 
 </Project>

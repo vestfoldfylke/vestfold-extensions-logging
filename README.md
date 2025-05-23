@@ -1,7 +1,7 @@
-![NuGet Version](https://img.shields.io/nuget/v/VFK.Extensions.Logging.svg)
-![NuGet Downloads](https://img.shields.io/nuget/dt/VFK.Extensions.Logging.svg)
+![NuGet Version](https://img.shields.io/nuget/v/Vestfold.Extensions.Logging.svg)
+![NuGet Downloads](https://img.shields.io/nuget/dt/Vestfold.Extensions.Logging.svg)
 
-# VFK.Extensions.Logging
+# Vestfold.Extensions.Logging
 
 Contains builder extensions for configuring logging in a dotnet core application.
 
@@ -14,9 +14,11 @@ Contains builder extensions for configuring logging in a dotnet core application
 
 Add the following to your `local.settings.json` file:
 
-> Optional properties:
-> - `AppName`: If not set, the assembly name will be used
-> - `Version`: If not set, the assembly version will be used
+All properties (except `AzureWebJobsStorage` and `FUNCTIONS_WORKER_RUNTIME` which is Azure specific) are optional.
+
+> Semi optional properties:
+> - `AppName`: If not set, the assembly name will be used as AppName property in logs
+> - `Version`: If not set, the assembly version will be used as Version property in logs
 
 ```json
 {
@@ -56,9 +58,11 @@ Example: Add an override for everything in the `Microsoft.Hosting` namespace to 
 
 Add the following to your `appsettings.json` file:
 
-> Optional properties:
-> - `AppName`: If not set, the assembly name will be used
-> - `Version`: If not set, the assembly version will be used
+All properties are optional.
+
+> Semi optional properties:
+> - `AppName`: If not set, the assembly name will be used as AppName property in logs
+> - `Version`: If not set, the assembly version will be used as Version property in logs
 
 ```json
 {
@@ -98,7 +102,7 @@ Example: Add an override for everything in the `Microsoft.Hosting` namespace to 
 ```csharp
 var builder = FunctionsApplication.CreateBuilder(args);
 builder.ConfigureFunctionsWebApplication();
-builder.Logging.AddVfkLogging();
+builder.Logging.AddVestfoldLogging();
 builder.Build().Run();
 ```
 
@@ -108,7 +112,7 @@ builder.Build().Run();
 public static async Task Main(string[] args)
 {
     await Host.CreateDefaultBuilder(args)
-        .ConfigureLogging(builder => builder.AddVfkLogging())
+        .ConfigureLogging(builder => builder.AddVestfoldLogging())
         .Build()
         .RunAsync();
 
@@ -120,7 +124,7 @@ public static async Task Main(string[] args)
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
-builder.Logging.AddVfkLogging();
+builder.Logging.AddVestfoldLogging();
 
 var app = builder.Build();
 ```

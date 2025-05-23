@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VFK.Extensions.Logging", "VFK.Extensions.Logging\VFK.Extensions.Logging.csproj", "{2177A4A3-89FD-401C-B413-7FAE77B8F1A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vestfold.Extensions.Logging", "Vestfold.Extensions.Logging\Vestfold.Extensions.Logging.csproj", "{2177A4A3-89FD-401C-B413-7FAE77B8F1A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VFK.Extensions.Logging.Tests", "VFK.Extensions.Logging.Tests\VFK.Extensions.Logging.Tests.csproj", "{37134AC6-DFAA-477B-8579-1F964D46687F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vestfold.Extensions.Logging.Tests", "Vestfold.Extensions.Logging.Tests\Vestfold.Extensions.Logging.Tests.csproj", "{37134AC6-DFAA-477B-8579-1F964D46687F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

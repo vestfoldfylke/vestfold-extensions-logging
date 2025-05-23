@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Serilog.Events;
-using VFK.Extensions.Logging;
+using Vestfold.Extensions.Logging;
 
 namespace Tests;
 

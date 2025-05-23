@@ -6,8 +6,8 @@
         <Nullable>enable</Nullable>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
-        <PackageId>VFK.Extensions.Logging</PackageId>
-        <Version>1.0.5</Version>
+        <PackageId>Vestfold.Extensions.Logging</PackageId>
+        <Version>1.0.0</Version>
         <Authors>Rune Moskvil Lyngås</Authors>
         <Company>Vestfold fylkeskommune</Company>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -48,7 +48,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <RepositoryUrl>https://github.com/vestfoldfylke/vfk-extensions-logging</RepositoryUrl>
+        <RepositoryUrl>https://github.com/vestfoldfylke/vestfold-extensions-logging</RepositoryUrl>
     </PropertyGroup>
 
 </Project>
