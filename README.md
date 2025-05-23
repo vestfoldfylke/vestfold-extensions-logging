@@ -9,8 +9,8 @@ Contains builder extensions for configuring logging in a dotnet core application
 
 > [!IMPORTANT]
 > Azure App Services does not allow periods (.) in the app setting names.<br />
-> As a workaround, use an underscore (_) instead of a period (.) in the app setting names, and it will be handled correctly in the code.<br />
-> If an app setting contains a period, the period is replaced with an underscore (_) in the container.
+> As a workaround, use an underscore (\_) instead of a period (.) in the app setting names, and it will be handled correctly in the code.<br />
+> If an app setting contains a period, the period is replaced with an underscore (\_) in the container.
 
 Add the following to your `local.settings.json` file:
 
@@ -43,7 +43,7 @@ All properties (except `AzureWebJobsStorage` and `FUNCTIONS_WORKER_RUNTIME` whic
 
 > [!IMPORTANT]
 > If you want to override a namespace which contains a period (.), for instance `Microsoft.Hosting`,
-> you need to use an underscore (_) since Azure App Services does not allow periods (.) in the app setting names.
+> you need to use an underscore (\_) since Azure App Services does not allow periods (.) in the app setting names.
 
 Example: Add an override for everything in the `Microsoft.Hosting` namespace to log from **Warning** and higher
 ```json
