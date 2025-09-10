@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,9 @@ public static class LoggingExtension
                 microsoftTeamsUseWorkflows,
                 microsoftTeamsTitleTemplate,
                 microsoftTeamsMinimumLevel,
+                filePath,
+                fileMinimumLevel,
+                fileRollingInterval,
                 consoleMinimumLevel,
                 version) = GetLoggingValues(config);
 
@@ -60,6 +64,16 @@ public static class LoggingExtension
                         titleTemplate: microsoftTeamsTitleTemplate ?? "",
                         restrictedToMinimumLevel: microsoftTeamsMinimumLevel);
             }
+
+            if (filePath is not null)
+            {
+                loggerConfiguration
+                    .WriteTo.File(
+                        filePath,
+                        restrictedToMinimumLevel: fileMinimumLevel,
+                        rollingInterval: fileRollingInterval,
+                        encoding: Encoding.UTF8);
+            }
         });
         
         return loggingBuilder;
@@ -67,8 +81,9 @@ public static class LoggingExtension
 
     public static (string appName, List<(string key, LogEventLevel level)> minimumLevelOverrides,
         string? betterStackEndpoint, string? betterStackSourceToken, LogEventLevel betterStackMinimumLevel,
-        string? microsoftTeamsWebhookUrl, bool microsoftTeamsUseWorkflows, string? microsoftTeamsTitleTemplate, LogEventLevel microsoftTeamsMinimumLevel,
-        LogEventLevel consoleMinimumLevel, string version) GetLoggingValues(IConfiguration config)
+        string? microsoftTeamsWebhookUrl, bool microsoftTeamsUseWorkflows, string? microsoftTeamsTitleTemplate,
+        LogEventLevel microsoftTeamsMinimumLevel, string? filePath, LogEventLevel fileMinimumLevel,
+        RollingInterval fileRollingInterval, LogEventLevel consoleMinimumLevel, string version) GetLoggingValues(IConfiguration config)
     {
         Constants.ConfigurationKeys configurationKeys = new(config);
         
@@ -85,7 +100,7 @@ public static class LoggingExtension
         List<(string key, LogEventLevel level)> minimumLevelOverrides = [];
         foreach (var child in config.AsEnumerable().Where(c => c.Key.StartsWith(minimumLevelOverrideKey)))
         {
-            var key = configurationKeys.ConvertAzureFriendlyKeyName(child.Key.Replace(minimumLevelOverrideKey, ""));
+            var key = Constants.ConfigurationKeys.ConvertAzureFriendlyKeyName(child.Key.Replace(minimumLevelOverrideKey, ""));
             if (!Enum.TryParse(child.Value, out LogEventLevel level))
             {
                 throw new InvalidOperationException($"Invalid value for {child.Key} in configuration");
@@ -120,6 +135,18 @@ public static class LoggingExtension
             microsoftTeamsMinimumLevel = LogEventLevel.Warning;
         }
         
+        var filePath = config[configurationKeys.FilePath];
+        
+        if (!Enum.TryParse(config[configurationKeys.FileMinimumLevel], out LogEventLevel fileMinimumLevel))
+        {
+            fileMinimumLevel = LogEventLevel.Warning;
+        }
+        
+        if (!Enum.TryParse(config[configurationKeys.FileRollingInterval], out RollingInterval fileRollingInterval))
+        {
+            fileRollingInterval = RollingInterval.Day;
+        }
+        
         return (
             appName,
             minimumLevelOverrides,
@@ -130,6 +157,9 @@ public static class LoggingExtension
             microsoftTeamsUseWorkflows,
             microsoftTeamsTitleTemplate,
             microsoftTeamsMinimumLevel,
+            filePath,
+            fileMinimumLevel,
+            fileRollingInterval,
             consoleMinimumLevel,
             version);
     }

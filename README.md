@@ -27,6 +27,7 @@ All properties (except `AzureWebJobsStorage` and `FUNCTIONS_WORKER_RUNTIME` whic
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "AppName": "Name of your application, used as a property in the logs",
+    "Version": "1.0.0",
     "BetterStack_SourceToken": "Your BetterStack source token",
     "BetterStack_Endpoint": "https://foo.betterstackdata.com",
     "BetterStack_MinimumLevel": "Information",
@@ -34,7 +35,10 @@ All properties (except `AzureWebJobsStorage` and `FUNCTIONS_WORKER_RUNTIME` whic
     "MicrosoftTeams_UseWorkflows": "true if Microsoft Power Automate flow is used, false if Microsoft Teams webhook is used (default is true)",
     "MicrosoftTeams_TitleTemplate": "The title template of the card",
     "MicrosoftTeams_MinimumLevel": "Warning",
-    "Version": "1.0.0"
+    "Serilog_Console_MinimumLevel": "Information",
+    "Serilog_File_Path": "log.txt",
+    "Serilog_File_MinimumLevel": "Warning",
+    "Serilog_File_RollingInterval": "Day"
   }
 }
 ```
@@ -67,6 +71,7 @@ All properties are optional.
 ```json
 {
   "AppName": "Name of your application, used as a property in the logs",
+  "Version": "1.0.0",
   "BetterStack": {
     "SourceToken": "Your BetterStack source token",
     "Endpoint": "https://foo.betterstackdata.com",
@@ -78,7 +83,16 @@ All properties are optional.
     "TitleTemplate": "The title template of the card",
     "MinimumLevel": "Warning"
   },
-  "Version": "1.0.0"
+  "Serilog": {
+    "Console": {
+      "MinimumLevel": "Information"
+    },
+    "File": {
+      "Path": "log.txt",
+      "MinimumLevel": "Warning",
+      "RollingInterval": "Day"
+    }
+  }
 }
 ```
 

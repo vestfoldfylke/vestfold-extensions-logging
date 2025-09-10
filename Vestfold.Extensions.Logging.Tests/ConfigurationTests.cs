@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Serilog;
 using Serilog.Events;
 using Vestfold.Extensions.Logging;
 
@@ -24,6 +25,7 @@ public class ConfigurationTests
         var (appName, minimumLevelOverrides,
             betterStackEndpoint, betterStackSourceToken, betterStackMinimumLevel,
             microsoftTeamsWebhookUrl, microsoftTeamsUseWorkflows, microsoftTeamsTitleTemplate, microsoftTeamsMinimumLevel,
+            filePath, fileMinimumLevel, fileRollingInterval,
             consoleMinimumLevel, version) = LoggingExtension.GetLoggingValues(config);
 
         // Assert
@@ -55,8 +57,6 @@ public class ConfigurationTests
         Assert.Equal("Microsoft.Hosting", minimumLevelOverrides.First().key);
         Assert.Equal(LogEventLevel.Error, minimumLevelOverrides.First().level);
         
-        Assert.Equal(LogEventLevel.Information, consoleMinimumLevel);
-        
         Assert.Equal("https://foo.betterstackdata.com", betterStackEndpoint);
         Assert.Equal("Your BetterStack source token", betterStackSourceToken);
         Assert.Equal(LogEventLevel.Debug, betterStackMinimumLevel);
@@ -65,5 +65,11 @@ public class ConfigurationTests
         Assert.True(microsoftTeamsUseWorkflows);
         Assert.Equal("Test", microsoftTeamsTitleTemplate);
         Assert.Equal(LogEventLevel.Error, microsoftTeamsMinimumLevel);
+        
+        Assert.Equal("logs.txt", filePath);
+        Assert.Equal(LogEventLevel.Error, fileMinimumLevel);
+        Assert.Equal(RollingInterval.Hour, fileRollingInterval);
+        
+        Assert.Equal(LogEventLevel.Information, consoleMinimumLevel);
     }
 }

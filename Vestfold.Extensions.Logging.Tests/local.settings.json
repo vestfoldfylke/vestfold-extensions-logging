@@ -5,11 +5,14 @@
   "Version": "1.2.3",
   "Serilog_MinimumLevel_Override_Microsoft_Hosting": "Error",
   "Serilog_Console_MinimumLevel": "Information",
-  "BetterStack_Endpoint": "https://foo.betterstackdata.com",
   "BetterStack_SourceToken": "Your BetterStack source token",
+  "BetterStack_Endpoint": "https://foo.betterstackdata.com",
   "BetterStack_MinimumLevel": "Debug",
   "MicrosoftTeams_WebhookUrl": "https://outlook.office.com/webhook/...",
   "MicrosoftTeams_UseWorkflows": "true",
   "MicrosoftTeams_TitleTemplate": "Test",
-  "MicrosoftTeams_MinimumLevel": "Error"
+  "MicrosoftTeams_MinimumLevel": "Error",
+  "Serilog_File_Path": "logs.txt",
+  "Serilog_File_MinimumLevel": "Error",
+  "Serilog_File_RollingInterval": "Hour"
 }

@@ -26,8 +26,12 @@ internal static class Constants
         internal string MicrosoftTeamsUseWorkflows => GetKeyName("MicrosoftTeams:UseWorkflows");
         internal string MicrosoftTeamsTitleTemplate => GetKeyName("MicrosoftTeams:TitleTemplate");
         internal string MicrosoftTeamsMinimumLevel => GetKeyName("MicrosoftTeams:MinimumLevel");
+        
+        internal string FilePath => GetKeyName("Serilog:File:Path");
+        internal string FileMinimumLevel => GetKeyName("Serilog:File:MinimumLevel");
+        internal string FileRollingInterval => GetKeyName("Serilog:File:RollingInterval");
 
-        internal string ConvertAzureFriendlyKeyName(string key) =>
+        internal static string ConvertAzureFriendlyKeyName(string key) =>
             key.Replace('_', '.');
 
         private string GetKeyName(string key) => configuration["FUNCTIONS_WORKER_RUNTIME"] is not null
