@@ -13,7 +13,7 @@ internal static class Constants
     internal class ConfigurationKeys(IConfiguration configuration)
     {
         internal string AppName => GetKeyName("AppName");
-        internal string Version => GetKeyName("Version");
+        internal string Version => GetKeyName("AppVersion");
         
         internal string ConsoleMinimumLevel => GetKeyName("Serilog:Console:MinimumLevel");
         internal string SerilogMinimumLevelOverrideKey => GetKeyName("Serilog:MinimumLevel:Override:");
