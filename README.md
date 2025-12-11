@@ -18,7 +18,7 @@ All properties (except `AzureWebJobsStorage` and `FUNCTIONS_WORKER_RUNTIME` whic
 
 > Semi optional properties:
 > - `AppName`: If not set, the assembly name will be used as AppName property in logs
-> - `Version`: If not set, the assembly version will be used as Version property in logs
+> - `AppVersion`: If not set, the assembly version will be used as Version property in logs
 
 ```json
 {
@@ -27,7 +27,7 @@ All properties (except `AzureWebJobsStorage` and `FUNCTIONS_WORKER_RUNTIME` whic
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "AppName": "Name of your application, used as a property in the logs",
-    "Version": "1.0.0",
+    "AppVersion": "1.0.0",
     "BetterStack_SourceToken": "Your BetterStack source token",
     "BetterStack_Endpoint": "https://foo.betterstackdata.com",
     "BetterStack_MinimumLevel": "Information",
@@ -66,12 +66,12 @@ All properties are optional.
 
 > Semi optional properties:
 > - `AppName`: If not set, the assembly name will be used as AppName property in logs
-> - `Version`: If not set, the assembly version will be used as Version property in logs
+> - `AppVersion`: If not set, the assembly version will be used as Version property in logs
 
 ```json
 {
   "AppName": "Name of your application, used as a property in the logs",
-  "Version": "1.0.0",
+  "AppVersion": "1.0.0",
   "BetterStack": {
     "SourceToken": "Your BetterStack source token",
     "Endpoint": "https://foo.betterstackdata.com",
