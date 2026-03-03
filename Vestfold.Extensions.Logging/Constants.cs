@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Configuration;
-
 namespace Vestfold.Extensions.Logging;
 
 internal static class Constants
@@ -10,32 +8,28 @@ internal static class Constants
         internal const string Version = "Version";
     }
     
-    internal class ConfigurationKeys(IConfiguration configuration)
+    internal static class ConfigurationKeys
     {
-        internal string AppName => GetKeyName("AppName");
-        internal string Version => GetKeyName("AppVersion");
+        internal static string AppName => "AppName";
+        internal static string Version => "AppVersion";
         
-        internal string ConsoleMinimumLevel => GetKeyName("Serilog:Console:MinimumLevel");
-        internal string SerilogMinimumLevelOverrideKey => GetKeyName("Serilog:MinimumLevel:Override:");
+        internal static string ConsoleMinimumLevel => "Serilog:Console:MinimumLevel";
+        internal static string SerilogMinimumLevelOverrideKey => "Serilog:MinimumLevel:Override:";
         
-        internal string BetterStackSourceToken => GetKeyName("BetterStack:SourceToken");
-        internal string BetterStackEndpoint => GetKeyName("BetterStack:Endpoint");
-        internal string BetterStackMinimumLevel => GetKeyName("BetterStack:MinimumLevel");
+        internal static string BetterStackSourceToken => "BetterStack:SourceToken";
+        internal static string BetterStackEndpoint => "BetterStack:Endpoint";
+        internal static string BetterStackMinimumLevel => "BetterStack:MinimumLevel";
         
-        internal string MicrosoftTeamsWebhookUrl => GetKeyName("MicrosoftTeams:WebhookUrl");
-        internal string MicrosoftTeamsUseWorkflows => GetKeyName("MicrosoftTeams:UseWorkflows");
-        internal string MicrosoftTeamsTitleTemplate => GetKeyName("MicrosoftTeams:TitleTemplate");
-        internal string MicrosoftTeamsMinimumLevel => GetKeyName("MicrosoftTeams:MinimumLevel");
+        internal static string MicrosoftTeamsWebhookUrl => "MicrosoftTeams:WebhookUrl";
+        internal static string MicrosoftTeamsUseWorkflows => "MicrosoftTeams:UseWorkflows";
+        internal static string MicrosoftTeamsTitleTemplate => "MicrosoftTeams:TitleTemplate";
+        internal static string MicrosoftTeamsMinimumLevel => "MicrosoftTeams:MinimumLevel";
         
-        internal string FilePath => GetKeyName("Serilog:File:Path");
-        internal string FileMinimumLevel => GetKeyName("Serilog:File:MinimumLevel");
-        internal string FileRollingInterval => GetKeyName("Serilog:File:RollingInterval");
+        internal static string FilePath => "Serilog:File:Path";
+        internal static string FileMinimumLevel => "Serilog:File:MinimumLevel";
+        internal static string FileRollingInterval => "Serilog:File:RollingInterval";
 
         internal static string ConvertAzureFriendlyKeyName(string key) =>
             key.Replace('_', '.');
-
-        private string GetKeyName(string key) => configuration["FUNCTIONS_WORKER_RUNTIME"] is not null
-            ? key.Replace(':', '_')
-            : key;
     }
 }

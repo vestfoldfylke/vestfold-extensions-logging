@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Events;
@@ -16,61 +20,87 @@ public class ConfigurationTests
     public void Get_correct_configuration_values(string jsonFile, string configAppName, string configVersion, bool expectConfigValues)
     {
         // Arrange
-        var isAzure = jsonFile.StartsWith("local.settings");
+        var config = NormalizeDoubleUnderscoreConfiguration(jsonFile);
         
-        var config = new ConfigurationBuilder()
-            .AddJsonFile(jsonFile)
-            .Build();
+        // Assert
+        Assert.NotNull(config["Serilog:MinimumLevel:Override:Microsoft_Hosting"] ?? config["Serilog:MinimumLevel:Override:Microsoft.Hosting"]);
+        Assert.NotNull(config["Serilog:Console:MinimumLevel"]);
+        Assert.NotNull(config["BetterStack:SourceToken"]);
+        Assert.NotNull(config["BetterStack:Endpoint"]);
+        Assert.NotNull(config["BetterStack:MinimumLevel"]);
+        Assert.NotNull(config["MicrosoftTeams:WebhookUrl"]);
+        Assert.NotNull(config["MicrosoftTeams:UseWorkflows"]);
+        Assert.NotNull(config["MicrosoftTeams:TitleTemplate"]);
+        Assert.NotNull(config["MicrosoftTeams:MinimumLevel"]);
+        Assert.NotNull(config["Serilog:File:Path"]);
+        Assert.NotNull(config["Serilog:File:MinimumLevel"]);
+        Assert.NotNull(config["Serilog:File:RollingInterval"]);
         
         // Act
-        var (appName, minimumLevelOverrides,
-            betterStackEndpoint, betterStackSourceToken, betterStackMinimumLevel,
-            microsoftTeamsWebhookUrl, microsoftTeamsUseWorkflows, microsoftTeamsTitleTemplate, microsoftTeamsMinimumLevel,
-            filePath, fileMinimumLevel, fileRollingInterval,
-            consoleMinimumLevel, version) = LoggingExtension.GetLoggingValues(config);
+        var loggingValues = LoggingExtension.GetLoggingValues(config);
 
         // Assert
-        if (isAzure)
-        {
-            Assert.Equal("UseDevelopmentStorage=true", config["AzureWebJobsStorage"]);
-            Assert.Equal("dotnet-isolated", config["FUNCTIONS_WORKER_RUNTIME"]);
-        }
-        else
-        {
-            Assert.Null(config["AzureWebJobsStorage"]);
-            Assert.Null(config["FUNCTIONS_WORKER_RUNTIME"]);
-        }
-
         if (expectConfigValues)
         {
-            Assert.Equal(configAppName, appName);
-            Assert.Equal(configVersion, version);
+            Assert.Equal(configAppName, loggingValues.AppName);
+            Assert.Equal(configVersion, loggingValues.Version);
         }
         else
         {
-            Assert.NotNull(appName);
-            Assert.NotEqual(configAppName, appName);
-            Assert.NotNull(version);
-            Assert.NotEqual(configVersion, version);
+            Assert.NotNull(loggingValues.AppName);
+            Assert.NotEqual(configAppName, loggingValues.AppName);
+            Assert.NotNull(loggingValues.Version);
+            Assert.NotEqual(configVersion, loggingValues.Version);
         }
         
-        Assert.Single(minimumLevelOverrides);
-        Assert.Equal("Microsoft.Hosting", minimumLevelOverrides.First().key);
-        Assert.Equal(LogEventLevel.Error, minimumLevelOverrides.First().level);
+        Assert.Single(loggingValues.MinimumLevelOverrides);
+        Assert.Equal("Microsoft.Hosting", loggingValues.MinimumLevelOverrides.First().key);
+        Assert.Equal(LogEventLevel.Error, loggingValues.MinimumLevelOverrides.First().level);
         
-        Assert.Equal("https://foo.betterstackdata.com", betterStackEndpoint);
-        Assert.Equal("Your BetterStack source token", betterStackSourceToken);
-        Assert.Equal(LogEventLevel.Debug, betterStackMinimumLevel);
+        Assert.Equal("https://foo.betterstackdata.com", loggingValues.BetterStack.Endpoint);
+        Assert.Equal("Your BetterStack source token", loggingValues.BetterStack.SourceToken);
+        Assert.Equal(LogEventLevel.Debug, loggingValues.BetterStack.MinimumLevel);
         
-        Assert.Equal("https://outlook.office.com/webhook/...", microsoftTeamsWebhookUrl);
-        Assert.True(microsoftTeamsUseWorkflows);
-        Assert.Equal("Test", microsoftTeamsTitleTemplate);
-        Assert.Equal(LogEventLevel.Error, microsoftTeamsMinimumLevel);
+        Assert.Equal("https://outlook.office.com/webhook/...", loggingValues.MicrosoftTeams.WebhookUrl);
+        if (jsonFile.EndsWith("2.json"))
+        {
+            Assert.False(loggingValues.MicrosoftTeams.UseWorkflows);            
+        }
+        else
+        {
+            Assert.True(loggingValues.MicrosoftTeams.UseWorkflows);
+        }
+
+        Assert.Equal("Test", loggingValues.MicrosoftTeams.TitleTemplate);
+        Assert.Equal(LogEventLevel.Error, loggingValues.MicrosoftTeams.MinimumLevel);
         
-        Assert.Equal("logs.txt", filePath);
-        Assert.Equal(LogEventLevel.Error, fileMinimumLevel);
-        Assert.Equal(RollingInterval.Hour, fileRollingInterval);
+        Assert.Equal("logs.txt", loggingValues.File.Path);
+        Assert.Equal(LogEventLevel.Error, loggingValues.File.MinimumLevel);
+        Assert.Equal(RollingInterval.Hour, loggingValues.File.RollingInterval);
         
-        Assert.Equal(LogEventLevel.Information, consoleMinimumLevel);
+        Assert.Equal(LogEventLevel.Information, loggingValues.ConsoleMinimumLevel);
+    }
+
+    private static IConfiguration NormalizeDoubleUnderscoreConfiguration(string jsonFile)
+    {
+        if (jsonFile.StartsWith("appsettings"))
+        {
+            // for appsettings*.json files, we can rely on ConfigurationBuilder to handle nested keys
+            return new ConfigurationBuilder()
+                .AddJsonFile(jsonFile)
+                .Build();
+        }
+        
+        // for local.settings*.json files, we need to manually replace double underscores with colons to create the correct configuration keys
+        var jsonDictionary = JsonSerializer.Deserialize<IDictionary<string, string?>>(File.ReadAllText(jsonFile)) ?? throw new InvalidOperationException($"Failed to deserialize '{jsonFile}'.");
+        
+        var normalizedDictionary = jsonDictionary.ToDictionary(
+            kvp => kvp.Key.Replace("__", ":"),
+            kvp => kvp.Value
+        );
+        
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(normalizedDictionary)
+            .Build();
     }
 }
