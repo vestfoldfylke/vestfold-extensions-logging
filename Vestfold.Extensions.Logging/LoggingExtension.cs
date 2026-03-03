@@ -69,7 +69,7 @@ public static class LoggingExtension
         return loggingBuilder;
     }
 
-    public static LoggingValues GetLoggingValues(IConfiguration config)
+    internal static LoggingValues GetLoggingValues(IConfiguration config)
     {
         var appName = config[Constants.ConfigurationKeys.AppName]
             ?? Assembly.GetEntryAssembly()?.GetName().Name

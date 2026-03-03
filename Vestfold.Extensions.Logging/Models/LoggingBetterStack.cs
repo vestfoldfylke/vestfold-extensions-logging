@@ -2,9 +2,9 @@ using Serilog.Events;
 
 namespace Vestfold.Extensions.Logging.Models;
 
-public record LoggingBetterStack
+internal record LoggingBetterStack
 {
-    public string? Endpoint { get; init; }
-    public string? SourceToken { get; init; }
-    public LogEventLevel MinimumLevel { get; init; } = LogEventLevel.Information;
+    internal string? Endpoint { get; init; }
+    internal string? SourceToken { get; init; }
+    internal LogEventLevel MinimumLevel { get; init; } = LogEventLevel.Information;
 }

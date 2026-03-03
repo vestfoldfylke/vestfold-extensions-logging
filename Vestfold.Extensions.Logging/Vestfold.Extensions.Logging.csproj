@@ -43,6 +43,10 @@
     <ItemGroup>
         <None Include="LICENSE" Pack="true" PackagePath="" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="Vestfold.Extensions.Logging.Tests" />
+    </ItemGroup>
 
     <PropertyGroup>
         <PackagePath>bin/Release/</PackagePath>

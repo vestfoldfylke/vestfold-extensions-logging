@@ -2,11 +2,10 @@ using Serilog.Events;
 
 namespace Vestfold.Extensions.Logging.Models;
 
-public record LoggingMicrosoftTeams
+internal record LoggingMicrosoftTeams
 {
-    public string? WebhookUrl { get; init; }
-    // NOTE: Default value for UseWorkflows is set in LoggingExtensions.GetLoggingValues
-    public bool UseWorkflows { get; init; }
-    public string? TitleTemplate { get; init; }
-    public LogEventLevel MinimumLevel { get; init; } = LogEventLevel.Warning;
+    internal string? WebhookUrl { get; init; }
+    internal bool UseWorkflows { get; init; } = true;
+    internal string? TitleTemplate { get; init; }
+    internal LogEventLevel MinimumLevel { get; init; } = LogEventLevel.Warning;
 }

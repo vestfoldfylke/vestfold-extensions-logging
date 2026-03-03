@@ -3,13 +3,13 @@ using Serilog.Events;
 
 namespace Vestfold.Extensions.Logging.Models;
 
-public record LoggingValues
+internal record LoggingValues
 {
-    public required string AppName { get; init; }
-    public required string Version { get; init; }
-    public IEnumerable<(string key, LogEventLevel level)> MinimumLevelOverrides { get; init; } = [];
-    public required LoggingBetterStack BetterStack { get; init; }
-    public required LoggingMicrosoftTeams MicrosoftTeams { get; init; }
-    public required LoggingFile File { get; init; }
-    public LogEventLevel ConsoleMinimumLevel { get; init; } = LogEventLevel.Debug;
+    internal required string AppName { get; init; }
+    internal required string Version { get; init; }
+    internal IEnumerable<(string key, LogEventLevel level)> MinimumLevelOverrides { get; init; } = [];
+    internal required LoggingBetterStack BetterStack { get; init; }
+    internal required LoggingMicrosoftTeams MicrosoftTeams { get; init; }
+    internal required LoggingFile File { get; init; }
+    internal LogEventLevel ConsoleMinimumLevel { get; init; } = LogEventLevel.Debug;
 }

@@ -62,7 +62,15 @@ public class ConfigurationTests
         Assert.Equal(LogEventLevel.Debug, loggingValues.BetterStack.MinimumLevel);
         
         Assert.Equal("https://outlook.office.com/webhook/...", loggingValues.MicrosoftTeams.WebhookUrl);
-        Assert.True(loggingValues.MicrosoftTeams.UseWorkflows);
+        if (jsonFile.EndsWith("2.json"))
+        {
+            Assert.False(loggingValues.MicrosoftTeams.UseWorkflows);            
+        }
+        else
+        {
+            Assert.True(loggingValues.MicrosoftTeams.UseWorkflows);
+        }
+
         Assert.Equal("Test", loggingValues.MicrosoftTeams.TitleTemplate);
         Assert.Equal(LogEventLevel.Error, loggingValues.MicrosoftTeams.MinimumLevel);
         

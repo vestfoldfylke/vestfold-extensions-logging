@@ -3,9 +3,9 @@ using Serilog.Events;
 
 namespace Vestfold.Extensions.Logging.Models;
 
-public record LoggingFile
+internal record LoggingFile
 {
-    public string? Path { get; init; }
-    public LogEventLevel MinimumLevel { get; init; } = LogEventLevel.Warning;
-    public RollingInterval RollingInterval { get; init; } = RollingInterval.Day;
+    internal string? Path { get; init; }
+    internal LogEventLevel MinimumLevel { get; init; } = LogEventLevel.Warning;
+    internal RollingInterval RollingInterval { get; init; } = RollingInterval.Day;
 }
