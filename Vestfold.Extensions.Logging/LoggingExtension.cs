@@ -71,17 +71,15 @@ public static class LoggingExtension
 
     public static LoggingValues GetLoggingValues(IConfiguration config)
     {
-        Constants.ConfigurationKeys configurationKeys = new(config);
-        
-        var appName = config[configurationKeys.AppName]
+        var appName = config[Constants.ConfigurationKeys.AppName]
             ?? Assembly.GetEntryAssembly()?.GetName().Name
-            ?? throw new InvalidOperationException($"Missing {configurationKeys.AppName} in configuration and couldn't get Name from Assembly");
+            ?? throw new InvalidOperationException($"Missing {Constants.ConfigurationKeys.AppName} in configuration and couldn't get Name from Assembly");
         
-        var version = config[configurationKeys.Version]
+        var version = config[Constants.ConfigurationKeys.Version]
                       ?? GetInformationalVersion()
-                      ?? throw new InvalidOperationException($"Missing {configurationKeys.Version} in configuration and couldn't get InformationalVersion in .csproj");
+                      ?? throw new InvalidOperationException($"Missing {Constants.ConfigurationKeys.Version} in configuration and couldn't get InformationalVersion in .csproj");
         
-        var minimumLevelOverrideKey = configurationKeys.SerilogMinimumLevelOverrideKey;
+        var minimumLevelOverrideKey = Constants.ConfigurationKeys.SerilogMinimumLevelOverrideKey;
 
         List<(string key, LogEventLevel level)> minimumLevelOverrides = [];
         foreach (var child in config.AsEnumerable().Where(c => c.Key.StartsWith(minimumLevelOverrideKey)))
@@ -95,28 +93,28 @@ public static class LoggingExtension
             minimumLevelOverrides.Add((key, level));
         }
 
-        _ = Enum.TryParse(config[configurationKeys.ConsoleMinimumLevel], out LogEventLevel consoleMinimumLevel);
+        _ = Enum.TryParse(config[Constants.ConfigurationKeys.ConsoleMinimumLevel], out LogEventLevel consoleMinimumLevel);
         
-        var betterStackEndpoint = config[configurationKeys.BetterStackEndpoint];
-        var betterStackSourceToken = config[configurationKeys.BetterStackSourceToken];
+        var betterStackEndpoint = config[Constants.ConfigurationKeys.BetterStackEndpoint];
+        var betterStackSourceToken = config[Constants.ConfigurationKeys.BetterStackSourceToken];
 
-        _ = Enum.TryParse(config[configurationKeys.BetterStackMinimumLevel], out LogEventLevel betterStackMinimumLevel);
+        _ = Enum.TryParse(config[Constants.ConfigurationKeys.BetterStackMinimumLevel], out LogEventLevel betterStackMinimumLevel);
         
-        var microsoftTeamsWebhookUrl = config[configurationKeys.MicrosoftTeamsWebhookUrl];
-        var microsoftTeamsTitleTemplate = config[configurationKeys.MicrosoftTeamsTitleTemplate];
+        var microsoftTeamsWebhookUrl = config[Constants.ConfigurationKeys.MicrosoftTeamsWebhookUrl];
+        var microsoftTeamsTitleTemplate = config[Constants.ConfigurationKeys.MicrosoftTeamsTitleTemplate];
         
-        if (!bool.TryParse(config[configurationKeys.MicrosoftTeamsUseWorkflows], out var microsoftTeamsUseWorkflows))
+        if (!bool.TryParse(config[Constants.ConfigurationKeys.MicrosoftTeamsUseWorkflows], out var microsoftTeamsUseWorkflows))
         {
             microsoftTeamsUseWorkflows = true;
         }
 
-        _ = Enum.TryParse(config[configurationKeys.MicrosoftTeamsMinimumLevel], out LogEventLevel microsoftTeamsMinimumLevel);
+        _ = Enum.TryParse(config[Constants.ConfigurationKeys.MicrosoftTeamsMinimumLevel], out LogEventLevel microsoftTeamsMinimumLevel);
         
-        var filePath = config[configurationKeys.FilePath];
+        var filePath = config[Constants.ConfigurationKeys.FilePath];
 
-        _ = Enum.TryParse(config[configurationKeys.FileMinimumLevel], out LogEventLevel fileMinimumLevel);
+        _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileMinimumLevel], out LogEventLevel fileMinimumLevel);
 
-        _ = Enum.TryParse(config[configurationKeys.FileRollingInterval], out RollingInterval fileRollingInterval);
+        _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileRollingInterval], out RollingInterval fileRollingInterval);
         
         return new LoggingValues
         {

@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Events;
@@ -16,27 +20,26 @@ public class ConfigurationTests
     public void Get_correct_configuration_values(string jsonFile, string configAppName, string configVersion, bool expectConfigValues)
     {
         // Arrange
-        var isAzure = jsonFile.StartsWith("local.settings");
+        var config = NormalizeDoubleUnderscoreConfiguration(jsonFile);
         
-        var config = new ConfigurationBuilder()
-            .AddJsonFile(jsonFile)
-            .Build();
+        // Assert
+        Assert.NotNull(config["Serilog:MinimumLevel:Override:Microsoft_Hosting"] ?? config["Serilog:MinimumLevel:Override:Microsoft.Hosting"]);
+        Assert.NotNull(config["Serilog:Console:MinimumLevel"]);
+        Assert.NotNull(config["BetterStack:SourceToken"]);
+        Assert.NotNull(config["BetterStack:Endpoint"]);
+        Assert.NotNull(config["BetterStack:MinimumLevel"]);
+        Assert.NotNull(config["MicrosoftTeams:WebhookUrl"]);
+        Assert.NotNull(config["MicrosoftTeams:UseWorkflows"]);
+        Assert.NotNull(config["MicrosoftTeams:TitleTemplate"]);
+        Assert.NotNull(config["MicrosoftTeams:MinimumLevel"]);
+        Assert.NotNull(config["Serilog:File:Path"]);
+        Assert.NotNull(config["Serilog:File:MinimumLevel"]);
+        Assert.NotNull(config["Serilog:File:RollingInterval"]);
         
         // Act
         var loggingValues = LoggingExtension.GetLoggingValues(config);
 
         // Assert
-        if (isAzure)
-        {
-            Assert.Equal("UseDevelopmentStorage=true", config["AzureWebJobsStorage"]);
-            Assert.Equal("dotnet-isolated", config["FUNCTIONS_WORKER_RUNTIME"]);
-        }
-        else
-        {
-            Assert.Null(config["AzureWebJobsStorage"]);
-            Assert.Null(config["FUNCTIONS_WORKER_RUNTIME"]);
-        }
-
         if (expectConfigValues)
         {
             Assert.Equal(configAppName, loggingValues.AppName);
@@ -68,5 +71,28 @@ public class ConfigurationTests
         Assert.Equal(RollingInterval.Hour, loggingValues.File.RollingInterval);
         
         Assert.Equal(LogEventLevel.Information, loggingValues.ConsoleMinimumLevel);
+    }
+
+    private static IConfiguration NormalizeDoubleUnderscoreConfiguration(string jsonFile)
+    {
+        if (jsonFile.StartsWith("appsettings"))
+        {
+            // for appsettings*.json files, we can rely on ConfigurationBuilder to handle nested keys
+            return new ConfigurationBuilder()
+                .AddJsonFile(jsonFile)
+                .Build();
+        }
+        
+        // for local.settings*.json files, we need to manually replace double underscores with colons to create the correct configuration keys
+        var jsonDictionary = JsonSerializer.Deserialize<IDictionary<string, string?>>(File.ReadAllText(jsonFile)) ?? throw new InvalidOperationException($"Failed to deserialize '{jsonFile}'.");
+        
+        var normalizedDictionary = jsonDictionary.ToDictionary(
+            kvp => kvp.Key.Replace("__", ":"),
+            kvp => kvp.Value
+        );
+        
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(normalizedDictionary)
+            .Build();
     }
 }

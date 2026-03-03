@@ -5,20 +5,26 @@
 
 Contains builder extensions for configuring logging in a dotnet core application.
 
-## Usage in an Azure Function / Azure Web App
-
+## Adding environment variables in an Azure App Service (`Web App` or `Function App`)
 > [!IMPORTANT]
-> Azure App Services does not allow periods (.) in the app setting names.<br />
-> As a workaround, use an underscore (\_) instead of a period (.) in the app setting names, and it will be handled correctly in the code.<br />
-> If an app setting contains a period, the period is replaced with an underscore (\_) in the container.
+> `Azure App Services` (actually it's Linux) does not allow periods (.) in the app setting names.<br />
+> If an app setting contains a period (.), the period is replaced with an underscore (\_) in the container automatically by `Azure App Services`.<br />
+> As a workaround, use an underscore (\_) instead of a period (.) in the app setting names, and it will be handled correctly in the code.
 
-Add the following to your `local.settings.json` file:
+> [!IMPORTANT] 2
+> `Azure App Services` (actually it's Linux) does not allow colons (:) in the app setting names, which are typically used in configuration names to denote nested configuration sections (e.g., `Serilog:MinimumLevel:Override:Microsoft`).<br />
+> As a workaround, use double underscores (\_\_) instead of a colon (:) in the app, and the dotnet runtime will automatically translate the double underscores into colons when building the configuration, allowing you to maintain the hierarchical structure of your configuration settings without any issues.<br />
+> Example: `Serilog__MinimumLevel__Override__Microsoft` will be translated to `Serilog:MinimumLevel:Override:Microsoft` in the configuration.
 
-All properties (except `AzureWebJobsStorage` and `FUNCTIONS_WORKER_RUNTIME` which is Azure specific) are optional.
+## Usage in an `Azure Function App`
+
+Add the following to your `local.settings.json` file to have a nested structure for the configuration:
+
+All properties (except `AzureWebJobsStorage` (`Azure App Service` specific) and `FUNCTIONS_WORKER_RUNTIME` (`Azure Function App` specific) are optional.
 
 > Semi optional properties:
-> - `AppName`: If not set, the assembly name will be used as AppName property in logs
-> - `AppVersion`: If not set, the assembly version will be used as Version property in logs
+> - `AppName`: If not set, the assembly name will be used as AppName property in logs<br />
+> - `AppVersion`: If not set, the assembly version will be used as Version property in logs. [!CAUTION]: In Azure Functions, the `Azure App Services` automatically injects an environment variable named `Version` with the version of the Azure Functions runtime, which will override the assembly version IF `AppVersion` is not set. To avoid this, it's recommended to explicitly set the `AppVersion` property in Azure Functions to ensure the correct version is used in the logs.
 
 ```json
 {
@@ -28,17 +34,17 @@ All properties (except `AzureWebJobsStorage` and `FUNCTIONS_WORKER_RUNTIME` whic
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "AppName": "Name of your application, used as a property in the logs",
     "AppVersion": "1.0.0",
-    "BetterStack_SourceToken": "Your BetterStack source token",
-    "BetterStack_Endpoint": "https://foo.betterstackdata.com",
-    "BetterStack_MinimumLevel": "Information",
-    "MicrosoftTeams_WebhookUrl": "microsoft teams webhook url | microsoft power automate flow url if UseWorkflows is set to true",
-    "MicrosoftTeams_UseWorkflows": "true if Microsoft Power Automate flow is used, false if Microsoft Teams webhook is used (default is true)",
-    "MicrosoftTeams_TitleTemplate": "The title template of the card",
-    "MicrosoftTeams_MinimumLevel": "Warning",
-    "Serilog_Console_MinimumLevel": "Information",
-    "Serilog_File_Path": "log.txt",
-    "Serilog_File_MinimumLevel": "Warning",
-    "Serilog_File_RollingInterval": "Day"
+    "BetterStack__SourceToken": "Your BetterStack source token",
+    "BetterStack__Endpoint": "https://foo.betterstackdata.com",
+    "BetterStack__MinimumLevel": "Information",
+    "MicrosoftTeams__WebhookUrl": "microsoft teams webhook url | microsoft power automate flow url if UseWorkflows is set to true",
+    "MicrosoftTeams__UseWorkflows": "true if Microsoft Power Automate flow is used, false if Microsoft Teams webhook is used (default is true)",
+    "MicrosoftTeams__TitleTemplate": "The title template of the card",
+    "MicrosoftTeams__MinimumLevel": "Warning",
+    "Serilog__Console__MinimumLevel": "Information",
+    "Serilog__File__Path": "log.txt",
+    "Serilog__File__MinimumLevel": "Warning",
+    "Serilog__File__RollingInterval": "Day"
   }
 }
 ```
@@ -46,14 +52,14 @@ All properties (except `AzureWebJobsStorage` and `FUNCTIONS_WORKER_RUNTIME` whic
 ### Override minimum levels for certain namespaces
 
 > [!IMPORTANT]
-> If you want to override a namespace which contains a period (.), for instance `Microsoft.Hosting`,
-> you need to use an underscore (\_) since Azure App Services does not allow periods (.) in the app setting names.
+> If you want to override a namespace which contains a period (.), for instance `Microsoft.Hosting`,<br />
+> you need to use an underscore (\_) since `Azure App Services` (actually it's Linux) does not allow periods (.) in the app setting names.
 
 Example: Add an override for everything in the `Microsoft.Hosting` namespace to log from **Warning** and higher
 ```json
 {
   "Values": {
-    "Serilog_MinimumLevel_Override_Microsoft_Hosting": "Warning"
+    "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Warning"
   }
 }
 ```
@@ -65,7 +71,7 @@ Add the following to your `appsettings.json` file:
 All properties are optional.
 
 > Semi optional properties:
-> - `AppName`: If not set, the assembly name will be used as AppName property in logs
+> - `AppName`: If not set, the assembly name will be used as AppName property in logs<br />
 > - `AppVersion`: If not set, the assembly version will be used as Version property in logs
 
 ```json
@@ -111,7 +117,7 @@ Example: Add an override for everything in the `Microsoft.Hosting` namespace to 
 }
 ```
 
-## Setting up logging for an Azure Function / Azure Web App
+## Setting up logging for an `Azure Function App` / `Azure Web App`
 
 ```csharp
 var builder = FunctionsApplication.CreateBuilder(args);
