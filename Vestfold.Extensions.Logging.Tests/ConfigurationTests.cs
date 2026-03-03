@@ -23,11 +23,7 @@ public class ConfigurationTests
             .Build();
         
         // Act
-        var (appName, minimumLevelOverrides,
-            betterStackEndpoint, betterStackSourceToken, betterStackMinimumLevel,
-            microsoftTeamsWebhookUrl, microsoftTeamsUseWorkflows, microsoftTeamsTitleTemplate, microsoftTeamsMinimumLevel,
-            filePath, fileMinimumLevel, fileRollingInterval,
-            consoleMinimumLevel, version) = LoggingExtension.GetLoggingValues(config);
+        var loggingValues = LoggingExtension.GetLoggingValues(config);
 
         // Assert
         if (isAzure)
@@ -43,34 +39,34 @@ public class ConfigurationTests
 
         if (expectConfigValues)
         {
-            Assert.Equal(configAppName, appName);
-            Assert.Equal(configVersion, version);
+            Assert.Equal(configAppName, loggingValues.AppName);
+            Assert.Equal(configVersion, loggingValues.Version);
         }
         else
         {
-            Assert.NotNull(appName);
-            Assert.NotEqual(configAppName, appName);
-            Assert.NotNull(version);
-            Assert.NotEqual(configVersion, version);
+            Assert.NotNull(loggingValues.AppName);
+            Assert.NotEqual(configAppName, loggingValues.AppName);
+            Assert.NotNull(loggingValues.Version);
+            Assert.NotEqual(configVersion, loggingValues.Version);
         }
         
-        Assert.Single(minimumLevelOverrides);
-        Assert.Equal("Microsoft.Hosting", minimumLevelOverrides.First().key);
-        Assert.Equal(LogEventLevel.Error, minimumLevelOverrides.First().level);
+        Assert.Single(loggingValues.MinimumLevelOverrides);
+        Assert.Equal("Microsoft.Hosting", loggingValues.MinimumLevelOverrides.First().key);
+        Assert.Equal(LogEventLevel.Error, loggingValues.MinimumLevelOverrides.First().level);
         
-        Assert.Equal("https://foo.betterstackdata.com", betterStackEndpoint);
-        Assert.Equal("Your BetterStack source token", betterStackSourceToken);
-        Assert.Equal(LogEventLevel.Debug, betterStackMinimumLevel);
+        Assert.Equal("https://foo.betterstackdata.com", loggingValues.BetterStack.Endpoint);
+        Assert.Equal("Your BetterStack source token", loggingValues.BetterStack.SourceToken);
+        Assert.Equal(LogEventLevel.Debug, loggingValues.BetterStack.MinimumLevel);
         
-        Assert.Equal("https://outlook.office.com/webhook/...", microsoftTeamsWebhookUrl);
-        Assert.True(microsoftTeamsUseWorkflows);
-        Assert.Equal("Test", microsoftTeamsTitleTemplate);
-        Assert.Equal(LogEventLevel.Error, microsoftTeamsMinimumLevel);
+        Assert.Equal("https://outlook.office.com/webhook/...", loggingValues.MicrosoftTeams.WebhookUrl);
+        Assert.True(loggingValues.MicrosoftTeams.UseWorkflows);
+        Assert.Equal("Test", loggingValues.MicrosoftTeams.TitleTemplate);
+        Assert.Equal(LogEventLevel.Error, loggingValues.MicrosoftTeams.MinimumLevel);
         
-        Assert.Equal("logs.txt", filePath);
-        Assert.Equal(LogEventLevel.Error, fileMinimumLevel);
-        Assert.Equal(RollingInterval.Hour, fileRollingInterval);
+        Assert.Equal("logs.txt", loggingValues.File.Path);
+        Assert.Equal(LogEventLevel.Error, loggingValues.File.MinimumLevel);
+        Assert.Equal(RollingInterval.Hour, loggingValues.File.RollingInterval);
         
-        Assert.Equal(LogEventLevel.Information, consoleMinimumLevel);
+        Assert.Equal(LogEventLevel.Information, loggingValues.ConsoleMinimumLevel);
     }
 }
