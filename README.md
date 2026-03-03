@@ -25,6 +25,7 @@ All properties (except `AzureWebJobsStorage` (`Azure App Service` specific) and 
 > Semi optional properties:
 > - `AppName`: If not set, the assembly name will be used as AppName property in logs<br />
 > - `AppVersion`: If not set, the assembly version will be used as Version property in logs.<br />
+
 > [!CAUTION]
 > In Azure Functions, the `Azure App Services` automatically injects an environment variable named `Version` with the version of the Azure Functions runtime, which will override the assembly version IF `AppVersion` is not set. To avoid this, it's recommended to explicitly set the `AppVersion` property in Azure Functions to ensure the correct version is used in the logs.
 
