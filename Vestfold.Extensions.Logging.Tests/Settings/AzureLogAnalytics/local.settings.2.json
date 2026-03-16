@@ -1,0 +1,9 @@
+{
+  "Serilog__AzureLogAnalytics__ImmutableId": "immutable-id",
+  "Serilog__AzureLogAnalytics__StreamName": "stream-name",
+  "Serilog__AzureLogAnalytics__TenantId": "tenant-id",
+  "Serilog__AzureLogAnalytics__MinimumLevel": "Warning",
+  "Serilog__AzureLogAnalytics__BatchSize": "500",
+  "Serilog__AzureLogAnalytics__BufferSize": "5000",
+  "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
+}

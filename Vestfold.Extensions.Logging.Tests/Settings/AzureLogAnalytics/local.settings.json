@@ -1,0 +1,14 @@
+{
+  "AppName": "AzureLogAnalytics",
+  "AppVersion": "1.2.3",
+  "Serilog__AzureLogAnalytics__ClientId": "client-id",
+  "Serilog__AzureLogAnalytics__ClientSecret": "client-secret",
+  "Serilog__AzureLogAnalytics__Endpoint": "endpoint",
+  "Serilog__AzureLogAnalytics__ImmutableId": "immutable-id",
+  "Serilog__AzureLogAnalytics__StreamName": "stream-name",
+  "Serilog__AzureLogAnalytics__TenantId": "tenant-id",
+  "Serilog__AzureLogAnalytics__MinimumLevel": "Warning",
+  "Serilog__AzureLogAnalytics__BatchSize": "50",
+  "Serilog__AzureLogAnalytics__BufferSize": "500",
+  "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
+}

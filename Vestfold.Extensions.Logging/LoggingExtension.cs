@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.AzureLogAnalytics;
 using Vestfold.Extensions.Logging.Models;
 
 namespace Vestfold.Extensions.Logging;
@@ -28,41 +29,67 @@ public static class LoggingExtension
                 .Enrich.WithEnvironmentName()
                 .Enrich.WithProperty(Constants.Properties.AppName, loggingValues.AppName)
                 .Enrich.WithProperty(Constants.Properties.Version, loggingValues.Version)
-                .Enrich.FromGlobalLogContext()
-                .WriteTo.Console(restrictedToMinimumLevel: loggingValues.ConsoleMinimumLevel);
+                .Enrich.FromGlobalLogContext();
 
             foreach (var (key, level) in loggingValues.MinimumLevelOverrides)
             {
                 loggerConfiguration.MinimumLevel.Override(key, level);
             }
 
-            if (loggingValues.BetterStack.Endpoint is not null && loggingValues.BetterStack.SourceToken is not null)
+            if (loggingValues.AzureLogAnalytics.Enabled)
             {
                 loggerConfiguration
-                    .WriteTo.BetterStack(
-                        loggingValues.BetterStack.SourceToken,
-                        loggingValues.BetterStack.Endpoint,
-                        restrictedToMinimumLevel: loggingValues.BetterStack.MinimumLevel);
+                    .WriteTo.Logger(loggerConfig => loggerConfig
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.AzureLogAnalytics.PropertiesToInclude, loggingValues.AzureLogAnalytics.PropertiesToExclude))
+                        .WriteTo.AzureLogAnalytics(loggingValues.AzureLogAnalytics.Credential, new ConfigurationSettings
+                        {
+                            BatchSize = loggingValues.AzureLogAnalytics.BatchSize,
+                            BufferSize = loggingValues.AzureLogAnalytics.BufferSize,
+                            MinLogLevel = loggingValues.AzureLogAnalytics.MinimumLevel
+                        }));
             }
 
-            if (loggingValues.MicrosoftTeams.WebhookUrl is not null)
+            if (loggingValues.BetterStack.Enabled)
             {
                 loggerConfiguration
-                    .WriteTo.MicrosoftTeams(
-                        loggingValues.MicrosoftTeams.WebhookUrl,
-                        usePowerAutomateWorkflows: loggingValues.MicrosoftTeams.UseWorkflows,
-                        titleTemplate: loggingValues.MicrosoftTeams.TitleTemplate ?? "",
-                        restrictedToMinimumLevel: loggingValues.MicrosoftTeams.MinimumLevel);
+                    .WriteTo.Logger(loggerConfig => loggerConfig
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.BetterStack.PropertiesToInclude, loggingValues.BetterStack.PropertiesToExclude))
+                        .WriteTo.BetterStack(
+                            loggingValues.BetterStack.SourceToken!,
+                            loggingValues.BetterStack.Endpoint!,
+                            restrictedToMinimumLevel: loggingValues.BetterStack.MinimumLevel));
             }
 
-            if (loggingValues.File.Path is not null)
+            if (loggingValues.Console.Enabled)
             {
                 loggerConfiguration
-                    .WriteTo.File(
-                        loggingValues.File.Path,
-                        restrictedToMinimumLevel: loggingValues.File.MinimumLevel,
-                        rollingInterval: loggingValues.File.RollingInterval,
-                        encoding: Encoding.UTF8);
+                    .WriteTo.Logger(loggerConfig => loggerConfig
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.Console.PropertiesToInclude, loggingValues.Console.PropertiesToExclude))
+                        .WriteTo.Console(restrictedToMinimumLevel: loggingValues.Console.MinimumLevel));
+            }
+
+            if (loggingValues.File.Enabled)
+            {
+                loggerConfiguration
+                    .WriteTo.Logger(loggerConfig => loggerConfig
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.File.PropertiesToInclude, loggingValues.File.PropertiesToExclude))
+                        .WriteTo.File(
+                            loggingValues.File.Path!,
+                            restrictedToMinimumLevel: loggingValues.File.MinimumLevel,
+                            rollingInterval: loggingValues.File.RollingInterval,
+                            encoding: Encoding.UTF8));
+            }
+
+            if (loggingValues.MicrosoftTeams.Enabled)
+            {
+                loggerConfiguration
+                    .WriteTo.Logger(loggerConfig => loggerConfig
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.MicrosoftTeams.PropertiesToInclude, loggingValues.MicrosoftTeams.PropertiesToExclude))
+                        .WriteTo.MicrosoftTeams(
+                            loggingValues.MicrosoftTeams.WebhookUrl!,
+                            usePowerAutomateWorkflows: loggingValues.MicrosoftTeams.UseWorkflows,
+                            titleTemplate: loggingValues.MicrosoftTeams.TitleTemplate ?? "",
+                            restrictedToMinimumLevel: loggingValues.MicrosoftTeams.MinimumLevel));
             }
         });
         
@@ -71,6 +98,7 @@ public static class LoggingExtension
 
     internal static LoggingValues GetLoggingValues(IConfiguration config)
     {
+        // general
         var appName = config[Constants.ConfigurationKeys.AppName]
             ?? Assembly.GetEntryAssembly()?.GetName().Name
             ?? throw new InvalidOperationException($"Missing {Constants.ConfigurationKeys.AppName} in configuration and couldn't get Name from Assembly");
@@ -92,14 +120,50 @@ public static class LoggingExtension
 
             minimumLevelOverrides.Add((key, level));
         }
+        
+        // Azure Log Analytics
+        var azureLogAnalyticsClientId = config[Constants.ConfigurationKeys.AzureLogAnalyticsClientId];
+        var azureLogAnalyticsClientSecret = config[Constants.ConfigurationKeys.AzureLogAnalyticsClientSecret];
+        var azureLogAnalyticsEndpoint = config[Constants.ConfigurationKeys.AzureLogAnalyticsEndpoint];
+        var azureLogAnalyticsImmutableId = config[Constants.ConfigurationKeys.AzureLogAnalyticsImmutableId];
+        var azureLogAnalyticsStreamName = config[Constants.ConfigurationKeys.AzureLogAnalyticsStreamName];
+        var azureLogAnalyticsTenantId = config[Constants.ConfigurationKeys.AzureLogAnalyticsTenantId];
+        
+        _ = int.TryParse(config[Constants.ConfigurationKeys.AzureLogAnalyticsBatchSize], out var azureLogAnalyticsBatchSize);
+        _ = int.TryParse(config[Constants.ConfigurationKeys.AzureLogAnalyticsBufferSize], out var azureLogAnalyticsBufferSize);
 
+        var credential = !string.IsNullOrWhiteSpace(azureLogAnalyticsClientId) && !string.IsNullOrWhiteSpace(azureLogAnalyticsClientSecret) && !string.IsNullOrWhiteSpace(azureLogAnalyticsEndpoint) &&
+                         !string.IsNullOrWhiteSpace(azureLogAnalyticsImmutableId) && !string.IsNullOrWhiteSpace(azureLogAnalyticsStreamName) && !string.IsNullOrWhiteSpace(azureLogAnalyticsTenantId)
+            ? new LoggerCredential
+            {
+                ClientId = azureLogAnalyticsClientId,
+                ClientSecret = azureLogAnalyticsClientSecret,
+                Endpoint = azureLogAnalyticsEndpoint,
+                ImmutableId = azureLogAnalyticsImmutableId,
+                StreamName = azureLogAnalyticsStreamName,
+                TenantId = azureLogAnalyticsTenantId
+            }
+            : null;
+        
+        _ = Enum.TryParse(config[Constants.ConfigurationKeys.AzureLogAnalyticsMinimumLevel], out LogEventLevel azureLogAnalyticsMinimumLevel);
+
+        // Console
         _ = Enum.TryParse(config[Constants.ConfigurationKeys.ConsoleMinimumLevel], out LogEventLevel consoleMinimumLevel);
         
+        // BetterStack
         var betterStackEndpoint = config[Constants.ConfigurationKeys.BetterStackEndpoint];
         var betterStackSourceToken = config[Constants.ConfigurationKeys.BetterStackSourceToken];
 
         _ = Enum.TryParse(config[Constants.ConfigurationKeys.BetterStackMinimumLevel], out LogEventLevel betterStackMinimumLevel);
         
+        // FilePath
+        var filePath = config[Constants.ConfigurationKeys.FilePath];
+
+        _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileMinimumLevel], out LogEventLevel fileMinimumLevel);
+
+        _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileRollingInterval], out RollingInterval fileRollingInterval);
+        
+        // Microsoft Teams
         var microsoftTeamsWebhookUrl = config[Constants.ConfigurationKeys.MicrosoftTeamsWebhookUrl];
         var microsoftTeamsTitleTemplate = config[Constants.ConfigurationKeys.MicrosoftTeamsTitleTemplate];
         
@@ -110,30 +174,27 @@ public static class LoggingExtension
 
         _ = Enum.TryParse(config[Constants.ConfigurationKeys.MicrosoftTeamsMinimumLevel], out LogEventLevel microsoftTeamsMinimumLevel);
         
-        var filePath = config[Constants.ConfigurationKeys.FilePath];
-
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileMinimumLevel], out LogEventLevel fileMinimumLevel);
-
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileRollingInterval], out RollingInterval fileRollingInterval);
-        
         return new LoggingValues
         {
             AppName = appName,
             Version = version,
             MinimumLevelOverrides = minimumLevelOverrides,
+            AzureLogAnalytics = new LoggingAzureLogAnalytics
+            {
+                Credential = credential,
+                BatchSize = azureLogAnalyticsBatchSize,
+                BufferSize = azureLogAnalyticsBufferSize,
+                MinimumLevel = azureLogAnalyticsMinimumLevel
+            },
             BetterStack = new LoggingBetterStack
             {
-
                 Endpoint = betterStackEndpoint,
                 SourceToken = betterStackSourceToken,
                 MinimumLevel = betterStackMinimumLevel
             },
-            MicrosoftTeams = new LoggingMicrosoftTeams
+            Console = new LoggingConsole
             {
-                MinimumLevel = microsoftTeamsMinimumLevel,
-                TitleTemplate = microsoftTeamsTitleTemplate,
-                UseWorkflows = microsoftTeamsUseWorkflows,
-                WebhookUrl = microsoftTeamsWebhookUrl
+                MinimumLevel = consoleMinimumLevel
             },
             File = new LoggingFile
             {
@@ -141,9 +202,23 @@ public static class LoggingExtension
                 Path = filePath,
                 RollingInterval = fileRollingInterval
             },
-            ConsoleMinimumLevel = consoleMinimumLevel
+            MicrosoftTeams = new LoggingMicrosoftTeams
+            {
+                MinimumLevel = microsoftTeamsMinimumLevel,
+                TitleTemplate = microsoftTeamsTitleTemplate,
+                UseWorkflows = microsoftTeamsUseWorkflows,
+                WebhookUrl = microsoftTeamsWebhookUrl
+            }
         };
     }
+    
+    internal static readonly Func<LogEvent, string[], string[], bool> LoggerFilter = (logEvent, propertiesToInclude, propertiesToExclude) =>
+    {
+        var include = propertiesToInclude.Length == 0 || logEvent.Properties.Any(property => propertiesToInclude.Contains(property.Key));
+        var exclude = logEvent.Properties.Any(property => propertiesToExclude.Contains(property.Key));
+
+        return include && !exclude;
+    };
 
     private static string? GetInformationalVersion()
     {

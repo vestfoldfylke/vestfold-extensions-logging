@@ -1,0 +1,4 @@
+{
+  "Serilog__Console__MinimumLevel": "Information",
+  "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
+}

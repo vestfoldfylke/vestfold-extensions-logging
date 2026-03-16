@@ -1,0 +1,6 @@
+{
+  "MicrosoftTeams__UseWorkflows": "false",
+  "MicrosoftTeams__TitleTemplate": "Test",
+  "MicrosoftTeams__MinimumLevel": "Error",
+  "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
+}
