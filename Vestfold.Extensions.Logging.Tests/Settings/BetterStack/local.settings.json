@@ -1,0 +1,8 @@
+{
+  "AppName": "BetterStack",
+  "AppVersion": "1.2.3",
+  "BetterStack__SourceToken": "Your BetterStack source token",
+  "BetterStack__Endpoint": "https://foo.betterstackdata.com",
+  "BetterStack__MinimumLevel": "Debug",
+  "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
+}

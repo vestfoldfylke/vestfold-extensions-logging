@@ -1,0 +1,9 @@
+{
+  "AppName": "MicrosoftTeams",
+  "AppVersion": "1.2.3",
+  "MicrosoftTeams__WebhookUrl": "https://outlook.office.com/webhook/...",
+  "MicrosoftTeams__UseWorkflows": "true",
+  "MicrosoftTeams__TitleTemplate": "Test",
+  "MicrosoftTeams__MinimumLevel": "Error",
+  "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
+}
