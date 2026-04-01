@@ -13,14 +13,14 @@ Contains builder extensions for configuring logging in a dotnet core application
 
 > [!IMPORTANT]
 > `Azure App Services` (actually it's Linux) does not allow colons (:) in the app setting names, which are typically used in configuration names to denote nested configuration sections (e.g., `Serilog:MinimumLevel:Override:Microsoft`).<br />
-> As a workaround, use double underscores (\_\_) instead of a colon (:) in the app, and the dotnet runtime will automatically translate the double underscores into colons when building the configuration, allowing you to maintain the hierarchical structure of your configuration settings without any issues.<br />
+> As a workaround, use double underscores (\_\_) instead of a colon (:\) in the app, and the dotnet runtime will automatically translate the double underscores into colons when building the configuration, allowing you to maintain the hierarchical structure of your configuration settings without any issues.<br />
 > Example: `Serilog__MinimumLevel__Override__Microsoft` will be translated to `Serilog:MinimumLevel:Override:Microsoft` in the configuration.
 
 ## Usage in an `Azure Function App`
 
 Add the following to your `local.settings.json` file to have a nested structure for the configuration:
 
-All properties (except `AzureWebJobsStorage` (`Azure App Service` specific) and `FUNCTIONS_WORKER_RUNTIME` (`Azure Function App` specific) are optional.
+All properties (except `AzureWebJobsStorage` (`Azure App Service` specific) and `FUNCTIONS_WORKER_RUNTIME` (`Azure Function App` specific)) are optional.
 
 > Semi optional properties:
 > - `AppName`: If not set, the assembly name will be used as AppName property in logs<br />
@@ -44,6 +44,15 @@ All properties (except `AzureWebJobsStorage` (`Azure App Service` specific) and 
     "MicrosoftTeams__UseWorkflows": "true if Microsoft Power Automate flow is used, false if Microsoft Teams webhook is used (default is true)",
     "MicrosoftTeams__TitleTemplate": "The title template of the card",
     "MicrosoftTeams__MinimumLevel": "Warning",
+    "Serilog__AzureLogAnalytics__ClientId": "Your Azure Log Analytics client id",
+    "Serilog__AzureLogAnalytics__ClientSecret": "Your Azure Log Analytics client secret",
+    "Serilog__AzureLogAnalytics__Endpoint": "logs ingestion URL for data collection endpoint",
+    "Serilog__AzureLogAnalytics__ImmutableId": "ImmutableId for Data Collection Rules (DCR)",
+    "Serilog__AzureLogAnalytics__StreamName": "Output stream name of target (Log Analytics API, can be accessed from DCR)",
+    "Serilog__AzureLogAnalytics__TenantId": "Directory (tenant) ID of the registered application (Microsoft Entra ID)",
+    "Serilog__AzureLogAnalytics__MinimumLevel": "Information",
+    "Serilog__AzureLogAnalytics__BatchSize": "The number of log events that are sent in a single request to Azure Log Analytics (default is 100). Typical range is between 1 and 1000",
+    "Serilog__AzureLogAnalytics__BufferSize": "The maximum number of log events stored in memory waiting to be sent to Azure Log Analytics (default is 5000)",
     "Serilog__Console__MinimumLevel": "Information",
     "Serilog__File__Path": "log.txt",
     "Serilog__File__MinimumLevel": "Warning",
@@ -93,6 +102,17 @@ All properties are optional.
     "MinimumLevel": "Warning"
   },
   "Serilog": {
+    "AzureLogAnalytics": {
+      "ClientId": "Your Azure Log Analytics client id",
+      "ClientSecret": "Your Azure Log Analytics client secret",
+      "Endpoint": "logs ingestion URL for data collection endpoint",
+      "ImmutableId": "ImmutableId for Data Collection Rules (DCR)",
+      "StreamName": "Output stream name of target (Log Analytics API, can be accessed from DCR)",
+      "TenantId": "Directory (tenant) ID of the registered application (Microsoft Entra ID)",
+      "MinimumLevel": "Information",
+      "BatchSize": "The number of log events that are sent in a single request to Azure Log Analytics (default is 100). Typical range is between 1 and 1000",
+      "BufferSize": "The maximum number of log events stored in memory waiting to be sent to Azure Log Analytics (default is 5000)"
+    },
     "Console": {
       "MinimumLevel": "Information"
     },
@@ -150,4 +170,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddVestfoldLogging();
 
 var app = builder.Build();
+```
+
+## Sending logs
+
+To send a `SecurityAudit` log, you need to make sure that `SecurityAudit` is set as a property in the log context:
+```csharp
+using Serilog.Context;
+
+Log.Information("This log will not be sent to the AzureLogAnalytics sink since SecurityAudit property is not set");
+
+using (LogContext.PushProperty(Vestfold.Extensions.Logging.Constants.Properties.SecurityAudit, true))
+{
+    Log.Information("This is a security audit log and will be sent to the AzureLogAnalytics sink if the minimum level is set to Information or lower");
+}
+
+Log.Warning("This log will not be sent to the AzureLogAnalytics sink since SecurityAudit property is not set");
 ```
