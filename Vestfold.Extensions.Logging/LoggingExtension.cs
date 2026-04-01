@@ -29,7 +29,8 @@ public static class LoggingExtension
                 .Enrich.WithEnvironmentName()
                 .Enrich.WithProperty(Constants.Properties.AppName, loggingValues.AppName)
                 .Enrich.WithProperty(Constants.Properties.Version, loggingValues.Version)
-                .Enrich.FromGlobalLogContext();
+                .Enrich.FromGlobalLogContext()
+                .WriteTo.Console(restrictedToMinimumLevel: loggingValues.Console.MinimumLevel);
 
             foreach (var (key, level) in loggingValues.MinimumLevelOverrides)
             {
@@ -58,14 +59,6 @@ public static class LoggingExtension
                             loggingValues.BetterStack.SourceToken!,
                             loggingValues.BetterStack.Endpoint!,
                             restrictedToMinimumLevel: loggingValues.BetterStack.MinimumLevel));
-            }
-
-            if (loggingValues.Console.Enabled)
-            {
-                loggerConfiguration
-                    .WriteTo.Logger(loggerConfig => loggerConfig
-                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.Console.PropertiesToInclude, loggingValues.Console.PropertiesToExclude))
-                        .WriteTo.Console(restrictedToMinimumLevel: loggingValues.Console.MinimumLevel));
             }
 
             if (loggingValues.File.Enabled)
@@ -214,8 +207,21 @@ public static class LoggingExtension
     
     internal static readonly Func<LogEvent, string[], string[], bool> LoggerFilter = (logEvent, propertiesToInclude, propertiesToExclude) =>
     {
-        var include = propertiesToInclude.Length == 0 || logEvent.Properties.Any(property => propertiesToInclude.Contains(property.Key));
-        var exclude = logEvent.Properties.Any(property => propertiesToExclude.Contains(property.Key));
+        var include = propertiesToInclude.Length == 0;
+        var exclude = false;
+
+        foreach (var property in logEvent.Properties)
+        {
+            if (!include && propertiesToInclude.Contains(property.Key))
+            {
+                include = true;
+            }
+            
+            if (!exclude && propertiesToExclude.Contains(property.Key))
+            {
+                exclude = true;
+            }
+        }
 
         return include && !exclude;
     };
