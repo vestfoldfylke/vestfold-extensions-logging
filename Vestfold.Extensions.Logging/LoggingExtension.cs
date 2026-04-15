@@ -1,14 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.AzureLogAnalytics;
+using Serilog.Templates;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using Vestfold.Extensions.Logging.Models;
 
 namespace Vestfold.Extensions.Logging;
@@ -39,10 +40,21 @@ public static class LoggingExtension
 
             if (loggingValues.AzureLogAnalytics.Enabled)
             {
+                // Flat JSON formatter required by Azure DCR transformation
+                var formatter = new ExpressionTemplate(
+                    "{ " +
+                    "\"TimeGenerated\": @t, " +
+                    "\"Level\": @l, " +
+                    "\"Message\": @m, " +
+                    "\"Exception\": @x, " +
+                    "@@p " +
+                    "}"
+                );
+
                 loggerConfiguration
                     .WriteTo.Logger(loggerConfig => loggerConfig
                         .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.AzureLogAnalytics.PropertiesToInclude, loggingValues.AzureLogAnalytics.PropertiesToExclude))
-                        .WriteTo.AzureLogAnalytics(loggingValues.AzureLogAnalytics.Credential, new ConfigurationSettings
+                        .WriteTo.AzureLogAnalytics(formatter, loggingValues.AzureLogAnalytics.Credential, new ConfigurationSettings
                         {
                             BatchSize = loggingValues.AzureLogAnalytics.BatchSize,
                             BufferSize = loggingValues.AzureLogAnalytics.BufferSize,
