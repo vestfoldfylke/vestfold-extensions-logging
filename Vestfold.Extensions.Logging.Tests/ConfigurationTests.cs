@@ -31,6 +31,7 @@ public class ConfigurationTests
         Assert.NotNull(config["Serilog:AzureLogAnalytics:MinimumLevel"]);
         Assert.True(int.TryParse(config["Serilog:AzureLogAnalytics:BatchSize"], out var batchSize));
         Assert.True(int.TryParse(config["Serilog:AzureLogAnalytics:BufferSize"], out var bufferSize));
+        Assert.True(int.TryParse(config["Serilog:AzureLogAnalytics:PeriodSeconds"], out var periodSeconds));
         Assert.NotNull(config["Serilog:MinimumLevel:Override:Microsoft_Hosting"] ?? config["Serilog:MinimumLevel:Override:Microsoft.Hosting"]);
         
         // Act
@@ -51,7 +52,8 @@ public class ConfigurationTests
         Assert.Equal(LogEventLevel.Warning, loggingValues.AzureLogAnalytics.MinimumLevel);
         Assert.Equal(batchSize, loggingValues.AzureLogAnalytics.BatchSize);
         Assert.Equal(bufferSize, loggingValues.AzureLogAnalytics.BufferSize);
-        
+        Assert.Equal(periodSeconds, loggingValues.AzureLogAnalytics.PeriodSeconds);
+
         AssertMinimumLevelOverrides(loggingValues);
     }
     
@@ -73,6 +75,7 @@ public class ConfigurationTests
         Assert.NotNull(config["Serilog:AzureLogAnalytics:MinimumLevel"]);
         Assert.True(int.TryParse(config["Serilog:AzureLogAnalytics:BatchSize"], out var batchSize));
         Assert.True(int.TryParse(config["Serilog:AzureLogAnalytics:BufferSize"], out var bufferSize));
+        Assert.True(int.TryParse(config["Serilog:AzureLogAnalytics:PeriodSeconds"], out var periodSeconds));
         Assert.NotNull(config["Serilog:MinimumLevel:Override:Microsoft_Hosting"] ?? config["Serilog:MinimumLevel:Override:Microsoft.Hosting"]);
         
         // Act
@@ -87,6 +90,7 @@ public class ConfigurationTests
         Assert.Equal(LogEventLevel.Warning, loggingValues.AzureLogAnalytics.MinimumLevel);
         Assert.Equal(batchSize, loggingValues.AzureLogAnalytics.BatchSize);
         Assert.Equal(bufferSize, loggingValues.AzureLogAnalytics.BufferSize);
+        Assert.Equal(periodSeconds, loggingValues.AzureLogAnalytics.PeriodSeconds);
 
         AssertMinimumLevelOverrides(loggingValues);
     }
