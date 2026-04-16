@@ -2,8 +2,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Configuration;
 using Serilog.Events;
-using Serilog.Sinks.PeriodicBatching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,20 +51,18 @@ public static class LoggingExtension
                     cred.ClientSecret!
                 );
 
-                var batchingOptions = new PeriodicBatchingSinkOptions
-                {
-                    BatchSizeLimit = loggingValues.AzureLogAnalytics.BatchSize,
-                    Period = TimeSpan.FromSeconds(5),
-                    QueueLimit = loggingValues.AzureLogAnalytics.BufferSize
-                };
-
                 loggerConfiguration
                     .WriteTo.Logger(loggerConfig => loggerConfig
                         .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent,
                             loggingValues.AzureLogAnalytics.PropertiesToInclude,
                             loggingValues.AzureLogAnalytics.PropertiesToExclude))
-                        .WriteTo.Sink(new PeriodicBatchingSink(sink, batchingOptions),
-                            loggingValues.AzureLogAnalytics.MinimumLevel));
+                        .WriteTo.Sink(sink, new BatchingOptions
+                        {
+                            BatchSizeLimit = loggingValues.AzureLogAnalytics.BatchSize,
+                            BufferingTimeLimit = TimeSpan.FromSeconds(loggingValues.AzureLogAnalytics.PeriodSeconds),
+                            QueueLimit = loggingValues.AzureLogAnalytics.BufferSize,
+                            EagerlyEmitFirstEvent = false
+                        }, loggingValues.AzureLogAnalytics.MinimumLevel));
             }
 
             if (loggingValues.BetterStack.Enabled)
@@ -141,6 +139,7 @@ public static class LoggingExtension
         
         _ = int.TryParse(config[Constants.ConfigurationKeys.AzureLogAnalyticsBatchSize], out var azureLogAnalyticsBatchSize);
         _ = int.TryParse(config[Constants.ConfigurationKeys.AzureLogAnalyticsBufferSize], out var azureLogAnalyticsBufferSize);
+        _ = int.TryParse(config[Constants.ConfigurationKeys.AzureLogAnalyticsPeriodSeconds], out var azureLogAnalyticsPeriodSeconds);
 
         var credential = !string.IsNullOrWhiteSpace(azureLogAnalyticsClientId) && !string.IsNullOrWhiteSpace(azureLogAnalyticsClientSecret) && !string.IsNullOrWhiteSpace(azureLogAnalyticsEndpoint) &&
                          !string.IsNullOrWhiteSpace(azureLogAnalyticsImmutableId) && !string.IsNullOrWhiteSpace(azureLogAnalyticsStreamName) && !string.IsNullOrWhiteSpace(azureLogAnalyticsTenantId)
@@ -194,7 +193,8 @@ public static class LoggingExtension
                 Credential = credential,
                 BatchSize = azureLogAnalyticsBatchSize > 0 ? azureLogAnalyticsBatchSize : 100,
                 BufferSize = azureLogAnalyticsBufferSize > 0 ? azureLogAnalyticsBufferSize : 5000,
-                MinimumLevel = azureLogAnalyticsMinimumLevel
+                PeriodSeconds = azureLogAnalyticsPeriodSeconds > 0 ? azureLogAnalyticsPeriodSeconds : 30,
+                MinimumLevel = azureLogAnalyticsMinimumLevel,
             },
             BetterStack = new LoggingBetterStack
             {

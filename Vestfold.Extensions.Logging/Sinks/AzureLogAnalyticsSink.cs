@@ -1,8 +1,8 @@
 ﻿using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Ingestion;
+using Serilog.Core;
 using Serilog.Events;
-using Serilog.Sinks.PeriodicBatching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +24,7 @@ internal sealed class AzureLogAnalyticsSink : IBatchedLogEventSink
         _streamName = streamName;
     }
 
-    public async Task EmitBatchAsync(IEnumerable<LogEvent> batch)
+    public async Task EmitBatchAsync(IReadOnlyCollection<LogEvent> batch)
     {
         var entries = batch.Select(logEvent =>
         {
