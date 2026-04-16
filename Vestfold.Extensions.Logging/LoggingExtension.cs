@@ -3,14 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using Serilog.Sinks.AzureLogAnalytics;
-using Serilog.Templates;
+using Serilog.Sinks.PeriodicBatching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using Vestfold.Extensions.Logging.Models;
+using Vestfold.Extensions.Logging.Sinks;
 
 namespace Vestfold.Extensions.Logging;
 
@@ -40,26 +40,31 @@ public static class LoggingExtension
 
             if (loggingValues.AzureLogAnalytics.Enabled)
             {
-                // Flat JSON formatter required by Azure DCR transformation
-                var formatter = new ExpressionTemplate(
-                    "{ " +
-                    "\"TimeGenerated\": @t, " +
-                    "\"Level\": @l, " +
-                    "\"Message\": @m, " +
-                    "\"Exception\": @x, " +
-                    "@@p " +
-                    "}"
+                var cred = loggingValues.AzureLogAnalytics.Credential!;
+
+                var sink = new AzureLogAnalyticsSink(
+                    cred.Endpoint!,
+                    cred.ImmutableId!,
+                    cred.StreamName!,
+                    cred.TenantId!,
+                    cred.ClientId!,
+                    cred.ClientSecret!
                 );
+
+                var batchingOptions = new PeriodicBatchingSinkOptions
+                {
+                    BatchSizeLimit = loggingValues.AzureLogAnalytics.BatchSize,
+                    Period = TimeSpan.FromSeconds(5),
+                    QueueLimit = loggingValues.AzureLogAnalytics.BufferSize
+                };
 
                 loggerConfiguration
                     .WriteTo.Logger(loggerConfig => loggerConfig
-                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.AzureLogAnalytics.PropertiesToInclude, loggingValues.AzureLogAnalytics.PropertiesToExclude))
-                        .WriteTo.AzureLogAnalytics(formatter, loggingValues.AzureLogAnalytics.Credential, new ConfigurationSettings
-                        {
-                            BatchSize = loggingValues.AzureLogAnalytics.BatchSize,
-                            BufferSize = loggingValues.AzureLogAnalytics.BufferSize,
-                            MinLogLevel = loggingValues.AzureLogAnalytics.MinimumLevel
-                        }));
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent,
+                            loggingValues.AzureLogAnalytics.PropertiesToInclude,
+                            loggingValues.AzureLogAnalytics.PropertiesToExclude))
+                        .WriteTo.Sink(new PeriodicBatchingSink(sink, batchingOptions),
+                            loggingValues.AzureLogAnalytics.MinimumLevel));
             }
 
             if (loggingValues.BetterStack.Enabled)
@@ -187,8 +192,8 @@ public static class LoggingExtension
             AzureLogAnalytics = new LoggingAzureLogAnalytics
             {
                 Credential = credential,
-                BatchSize = azureLogAnalyticsBatchSize,
-                BufferSize = azureLogAnalyticsBufferSize,
+                BatchSize = azureLogAnalyticsBatchSize > 0 ? azureLogAnalyticsBatchSize : 100,
+                BufferSize = azureLogAnalyticsBufferSize > 0 ? azureLogAnalyticsBufferSize : 5000,
                 MinimumLevel = azureLogAnalyticsMinimumLevel
             },
             BetterStack = new LoggingBetterStack

@@ -1,5 +1,4 @@
 using Serilog.Events;
-using Serilog.Sinks.AzureLogAnalytics;
 
 namespace Vestfold.Extensions.Logging.Models;
 
