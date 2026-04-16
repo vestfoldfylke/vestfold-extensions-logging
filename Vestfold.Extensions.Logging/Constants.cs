@@ -43,6 +43,7 @@ public static class Constants
         internal static string AzureLogAnalyticsMinimumLevel => "Serilog:AzureLogAnalytics:MinimumLevel";
         internal static string AzureLogAnalyticsBatchSize => "Serilog:AzureLogAnalytics:BatchSize";
         internal static string AzureLogAnalyticsBufferSize => "Serilog:AzureLogAnalytics:BufferSize";
+        internal static string AzureLogAnalyticsPeriodSeconds => "Serilog:AzureLogAnalytics:PeriodSeconds";
 
         internal static string ConvertAzureFriendlyKeyName(string key) =>
             key.Replace('_', '.');

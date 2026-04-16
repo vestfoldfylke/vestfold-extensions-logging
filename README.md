@@ -53,6 +53,7 @@ All properties (except `AzureWebJobsStorage` (`Azure App Service` specific) and 
     "Serilog__AzureLogAnalytics__MinimumLevel": "Information",
     "Serilog__AzureLogAnalytics__BatchSize": "The number of log events that are sent in a single request to Azure Log Analytics (default is 100). Typical range is between 1 and 1000",
     "Serilog__AzureLogAnalytics__BufferSize": "The maximum number of log events stored in memory waiting to be sent to Azure Log Analytics (default is 5000)",
+    "Serilog__AzureLogAnalytics__PeriodSeconds": "The maximum delay in seconds between sending batches to Azure Log Analytics (default is 30)",
     "Serilog__Console__MinimumLevel": "Information",
     "Serilog__File__Path": "log.txt",
     "Serilog__File__MinimumLevel": "Warning",
@@ -111,7 +112,8 @@ All properties are optional.
       "TenantId": "Directory (tenant) ID of the registered application (Microsoft Entra ID)",
       "MinimumLevel": "Information",
       "BatchSize": "The number of log events that are sent in a single request to Azure Log Analytics (default is 100). Typical range is between 1 and 1000",
-      "BufferSize": "The maximum number of log events stored in memory waiting to be sent to Azure Log Analytics (default is 5000)"
+      "BufferSize": "The maximum number of log events stored in memory waiting to be sent to Azure Log Analytics (default is 5000)",
+      "PeriodSeconds": "The maximum delay in seconds before sending a batch to Azure Log Analytics (default is 30)"
     },
     "Console": {
       "MinimumLevel": "Information"

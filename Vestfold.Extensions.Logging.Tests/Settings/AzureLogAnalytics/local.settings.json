@@ -10,5 +10,6 @@
   "Serilog__AzureLogAnalytics__MinimumLevel": "Warning",
   "Serilog__AzureLogAnalytics__BatchSize": "50",
   "Serilog__AzureLogAnalytics__BufferSize": "500",
+  "Serilog__AzureLogAnalytics__PeriodSeconds": "10",
   "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
 }
