@@ -37,7 +37,9 @@ internal sealed class AzureLogAnalyticsSink : IBatchedLogEventSink
             };
 
             foreach (var prop in logEvent.Properties)
+            {
                 dict[prop.Key] = SimplifyValue(prop.Value);
+            }
 
             return dict;
         }).ToList();
