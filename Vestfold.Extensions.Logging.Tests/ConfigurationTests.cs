@@ -72,7 +72,7 @@ public class ConfigurationTests
         Assert.NotNull(config["Serilog:AzureLogAnalytics:ImmutableId"]);
         Assert.NotNull(config["Serilog:AzureLogAnalytics:StreamName"]);
         Assert.NotNull(config["Serilog:AzureLogAnalytics:TenantId"]);
-        Assert.NotNull(config["Serilog:AzureLogAnalytics:MinimumLevel"]);
+        Assert.Null(config["Serilog:AzureLogAnalytics:MinimumLevel"]);
         Assert.True(int.TryParse(config["Serilog:AzureLogAnalytics:BatchSize"], out var batchSize));
         Assert.True(int.TryParse(config["Serilog:AzureLogAnalytics:BufferSize"], out var bufferSize));
         Assert.True(int.TryParse(config["Serilog:AzureLogAnalytics:PeriodSeconds"], out var periodSeconds));
@@ -87,7 +87,7 @@ public class ConfigurationTests
         Assert.False(loggingValues.AzureLogAnalytics.Enabled);
         Assert.Null(loggingValues.AzureLogAnalytics.Credential);
         
-        Assert.Equal(LogEventLevel.Warning, loggingValues.AzureLogAnalytics.MinimumLevel);
+        Assert.Equal(LoggingAzureLogAnalytics.DefaultMinimumLevel, loggingValues.AzureLogAnalytics.MinimumLevel);
         Assert.Equal(batchSize, loggingValues.AzureLogAnalytics.BatchSize);
         Assert.Equal(bufferSize, loggingValues.AzureLogAnalytics.BufferSize);
         Assert.Equal(periodSeconds, loggingValues.AzureLogAnalytics.PeriodSeconds);
@@ -147,7 +147,7 @@ public class ConfigurationTests
         // Assert
         Assert.Null(config["BetterStack:SourceToken"]);
         Assert.Null(config["BetterStack:Endpoint"]);
-        Assert.NotNull(config["BetterStack:MinimumLevel"]);
+        Assert.Null(config["BetterStack:MinimumLevel"]);
         Assert.NotNull(config["Serilog:MinimumLevel:Override:Microsoft_Hosting"] ?? config["Serilog:MinimumLevel:Override:Microsoft.Hosting"]);
         
         // Act
@@ -158,7 +158,7 @@ public class ConfigurationTests
         
         Assert.False(loggingValues.BetterStack.Enabled);
         
-        Assert.Equal(LogEventLevel.Debug, loggingValues.BetterStack.MinimumLevel);
+        Assert.Equal(LoggingBetterStack.DefaultMinimumLevel, loggingValues.BetterStack.MinimumLevel);
 
         AssertMinimumLevelOverrides(loggingValues);
     }
@@ -186,8 +186,16 @@ public class ConfigurationTests
         var config = NormalizeDoubleUnderscoreConfiguration(jsonFile);
         
         // Assert
-        Assert.NotNull(config["Serilog:Console:MinimumLevel"]);
         Assert.NotNull(config["Serilog:MinimumLevel:Override:Microsoft_Hosting"] ?? config["Serilog:MinimumLevel:Override:Microsoft.Hosting"]);
+        
+        if (jsonFile.EndsWith("2.json"))
+        {
+            Assert.Null(config["Serilog:Console:MinimumLevel"]);
+        }
+        else
+        {
+            Assert.NotNull(config["Serilog:Console:MinimumLevel"]);
+        }
         
         // Act
         var loggingValues = LoggingExtension.GetLoggingValues(config);
@@ -196,9 +204,8 @@ public class ConfigurationTests
         AssertConfigAppNameAndVersion(loggingValues, configAppName, configVersion, !jsonFile.EndsWith("2.json"));
         
         Assert.True(loggingValues.Console.Enabled);
-        
-        Assert.Equal(LogEventLevel.Information, loggingValues.Console.MinimumLevel);
-        
+        Assert.Equal(jsonFile.EndsWith("2.json") ? LoggingConsole.DefaultMinimumLevel : LogEventLevel.Information, loggingValues.Console.MinimumLevel);
+
         AssertMinimumLevelOverrides(loggingValues);
     }
     
@@ -253,7 +260,7 @@ public class ConfigurationTests
         
         // Assert
         Assert.Null(config["Serilog:File:Path"]);
-        Assert.NotNull(config["Serilog:File:MinimumLevel"]);
+        Assert.Null(config["Serilog:File:MinimumLevel"]);
         Assert.NotNull(config["Serilog:File:RollingInterval"]);
         Assert.NotNull(config["Serilog:MinimumLevel:Override:Microsoft_Hosting"] ?? config["Serilog:MinimumLevel:Override:Microsoft.Hosting"]);
         
@@ -266,7 +273,7 @@ public class ConfigurationTests
         Assert.False(loggingValues.File.Enabled);
         
         Assert.Equal(RollingInterval.Minute, loggingValues.File.RollingInterval);
-        Assert.Equal(LogEventLevel.Error, loggingValues.File.MinimumLevel);
+        Assert.Equal(LoggingFile.DefaultMinimumLevel, loggingValues.File.MinimumLevel);
 
         AssertMinimumLevelOverrides(loggingValues);
     }
@@ -326,7 +333,7 @@ public class ConfigurationTests
         Assert.Null(config["MicrosoftTeams:WebhookUrl"]);
         Assert.NotNull(config["MicrosoftTeams:UseWorkflows"]);
         Assert.NotNull(config["MicrosoftTeams:TitleTemplate"]);
-        Assert.NotNull(config["MicrosoftTeams:MinimumLevel"]);
+        Assert.Null(config["MicrosoftTeams:MinimumLevel"]);
         Assert.NotNull(config["Serilog:MinimumLevel:Override:Microsoft_Hosting"] ?? config["Serilog:MinimumLevel:Override:Microsoft.Hosting"]);
         
         // Act
@@ -339,7 +346,7 @@ public class ConfigurationTests
         
         Assert.False(loggingValues.MicrosoftTeams.UseWorkflows);
         Assert.Equal(config["MicrosoftTeams:TitleTemplate"], loggingValues.MicrosoftTeams.TitleTemplate);
-        Assert.Equal(LogEventLevel.Error, loggingValues.MicrosoftTeams.MinimumLevel);
+        Assert.Equal(LoggingMicrosoftTeams.DefaultMinimumLevel, loggingValues.MicrosoftTeams.MinimumLevel);
 
         AssertMinimumLevelOverrides(loggingValues);
     }

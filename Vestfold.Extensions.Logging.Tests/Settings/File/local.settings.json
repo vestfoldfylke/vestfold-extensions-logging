@@ -2,7 +2,7 @@
   "AppName": "File",
   "AppVersion": "1.2.3",
   "Serilog__File__Path": "logs.txt",
-  "Serilog__File__MinimumLevel": "Error",
+  "Serilog__File__MinimumLevel": "error",
   "Serilog__File__RollingInterval": "Hour",
   "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
 }

@@ -154,21 +154,21 @@ public static class LoggingExtension
             }
             : null;
         
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.AzureLogAnalyticsMinimumLevel], out LogEventLevel azureLogAnalyticsMinimumLevel);
+        var azureLogAnalyticsMinimumLevel = GetLogLevel(config, Constants.ConfigurationKeys.AzureLogAnalyticsMinimumLevel, LoggingAzureLogAnalytics.DefaultMinimumLevel);
 
         // Console
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.ConsoleMinimumLevel], out LogEventLevel consoleMinimumLevel);
+        var consoleMinimumLevel = GetLogLevel(config, Constants.ConfigurationKeys.ConsoleMinimumLevel, LoggingConsole.DefaultMinimumLevel);
         
         // BetterStack
         var betterStackEndpoint = config[Constants.ConfigurationKeys.BetterStackEndpoint];
         var betterStackSourceToken = config[Constants.ConfigurationKeys.BetterStackSourceToken];
 
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.BetterStackMinimumLevel], out LogEventLevel betterStackMinimumLevel);
+        var betterStackMinimumLevel = GetLogLevel(config, Constants.ConfigurationKeys.BetterStackMinimumLevel, LoggingBetterStack.DefaultMinimumLevel);
         
         // FilePath
         var filePath = config[Constants.ConfigurationKeys.FilePath];
 
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileMinimumLevel], out LogEventLevel fileMinimumLevel);
+        var fileMinimumLevel = GetLogLevel(config, Constants.ConfigurationKeys.FileMinimumLevel, LoggingFile.DefaultMinimumLevel);
 
         _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileRollingInterval], out RollingInterval fileRollingInterval);
         
@@ -181,7 +181,7 @@ public static class LoggingExtension
             microsoftTeamsUseWorkflows = true;
         }
 
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.MicrosoftTeamsMinimumLevel], out LogEventLevel microsoftTeamsMinimumLevel);
+        var microsoftTeamsMinimumLevel = GetLogLevel(config, Constants.ConfigurationKeys.MicrosoftTeamsMinimumLevel, LoggingMicrosoftTeams.DefaultMinimumLevel);
         
         return new LoggingValues
         {
@@ -259,5 +259,18 @@ public static class LoggingExtension
         }
 
         return informationalVersion;
+    }
+
+    private static LogEventLevel GetLogLevel(IConfiguration configuration, string key, LogEventLevel defaultLevel)
+    {
+        var configValue = configuration[key];
+        if (string.IsNullOrWhiteSpace(configValue))
+        {
+            return defaultLevel;
+        }
+
+        return Enum.TryParse(configValue, ignoreCase: true, out LogEventLevel parsedLevel)
+            ? parsedLevel
+            : throw new InvalidOperationException($"Invalid value for {key} in configuration");
     }
 }

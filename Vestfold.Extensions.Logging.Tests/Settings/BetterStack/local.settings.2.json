@@ -1,4 +1,3 @@
 {
-  "BetterStack__MinimumLevel": "Debug",
   "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
 }
