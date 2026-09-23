@@ -20,5 +20,5 @@ jobs:
         uses: vestfoldfylke/shared/.github/actions/nuget-publish@main
         with:
           nuget_user: ${{ secrets.NUGET_USER }}
-          dotnet_version: "8.0.x"
+          dotnet_version: "10.0.x"
           project_release_path: "Vestfold.Extensions.Logging/bin/Release"
