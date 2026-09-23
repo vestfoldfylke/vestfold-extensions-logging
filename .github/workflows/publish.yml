@@ -8,16 +8,16 @@ on:
 jobs:
   publish-nuget-package:
     if: |
-      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || 
       (github.event_name == 'release' && github.event.release.target_commitish == 'main')
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Required for OIDC (trusted publisher setup)
+      id-token: write # Required for OIDC (trusted publisher setup)
       contents: read
 
     steps:
       - name: Publish NuGet package
-        uses: vestfoldfylke/shared/.github/actions/nuget-publish@70f76b27bf00cd21a6a9f6053762fdc13eefd119 # v1.0.2
+        uses: vestfoldfylke/shared/.github/actions/nuget-publish@main
         with:
           nuget_user: ${{ secrets.NUGET_USER }}
           dotnet_version: "8.0.x"
