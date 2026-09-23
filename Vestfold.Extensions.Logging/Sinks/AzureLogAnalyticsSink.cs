@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure;
+using Serilog.Debugging;
 
 namespace Vestfold.Extensions.Logging.Sinks;
 
@@ -44,8 +46,39 @@ internal sealed class AzureLogAnalyticsSink : IBatchedLogEventSink
             return dict;
         }).ToList();
 
-        await _client.UploadAsync(_ruleId, _streamName,
-            RequestContent.Create(BinaryData.FromObjectAsJson(entries)));
+        try
+        {
+            await _client.UploadAsync(_ruleId, _streamName,
+                RequestContent.Create(BinaryData.FromObjectAsJson(entries)));
+        }
+        catch (RequestFailedException rex)
+        {
+            var data = rex.Data.Count > 0
+                ? $"Data: {System.Text.Json.JsonSerializer.Serialize(rex.Data)}"
+                : "";
+
+            SelfLog.WriteLine($"-----------------------------------------------------------------\n" +
+                              $"Azure Log Analytics Sink upload failed for {entries.Count} log events!\n" +
+                              $"ErrorCode: {rex.ErrorCode}\n" +
+                              $"Status: {rex.Status}\n" +
+                              $"Message: {rex.Message}\n" +
+                              $"StackTrace: {rex.StackTrace}\n" +
+                              $"{data}\n" +
+                              $"-----------------------------------------------------------------");
+        }
+        catch (Exception ex)
+        {
+            var data = ex.Data.Count > 0
+                ? $"Data: {System.Text.Json.JsonSerializer.Serialize(ex.Data)}"
+                : "";
+
+            SelfLog.WriteLine($"-----------------------------------------------------------------\n" +
+                              $"Azure Log Analytics Sink upload failed for {entries.Count}log events!\n" +
+                              $"Message: {ex.Message}\n" +
+                              $"StackTrace: {ex.StackTrace}\n" +
+                              $"{data}\n" +
+                              $"-----------------------------------------------------------------");
+        }
     }
 
     public Task OnEmptyBatchAsync() => Task.CompletedTask;
