@@ -261,7 +261,7 @@ public class ConfigurationTests
         // Assert
         Assert.Null(config["Serilog:File:Path"]);
         Assert.Null(config["Serilog:File:MinimumLevel"]);
-        Assert.NotNull(config["Serilog:File:RollingInterval"]);
+        Assert.Null(config["Serilog:File:RollingInterval"]);
         Assert.NotNull(config["Serilog:MinimumLevel:Override:Microsoft_Hosting"] ?? config["Serilog:MinimumLevel:Override:Microsoft.Hosting"]);
         
         // Act
@@ -272,7 +272,7 @@ public class ConfigurationTests
         
         Assert.False(loggingValues.File.Enabled);
         
-        Assert.Equal(RollingInterval.Minute, loggingValues.File.RollingInterval);
+        Assert.Equal(LoggingFile.DefaultRollingInterval, loggingValues.File.RollingInterval);
         Assert.Equal(LoggingFile.DefaultMinimumLevel, loggingValues.File.MinimumLevel);
 
         AssertMinimumLevelOverrides(loggingValues);
