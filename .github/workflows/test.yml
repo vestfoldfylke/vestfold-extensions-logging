@@ -1,0 +1,13 @@
+name: publish
+
+on:
+  pull_request: 
+    branches:
+      - main
+
+jobs:
+  dotnet-security:
+    uses: vestfoldfylke/shared/.github/workflows/dotnet-security.yml@main
+    with:
+      dotnet_version: "8.0.x"
+      framework_version: "net8.0"
