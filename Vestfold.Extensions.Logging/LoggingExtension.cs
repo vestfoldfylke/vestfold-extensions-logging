@@ -18,6 +18,8 @@ public static class LoggingExtension
 {
     public static ILoggingBuilder AddVestfoldLogging(this ILoggingBuilder loggingBuilder)
     {
+        Serilog.Debugging.SelfLog.Enable(Console.Error);
+
         loggingBuilder.Services.AddSerilog((services, loggerConfiguration) =>
         {
             var config = services.GetRequiredService<IConfiguration>();
