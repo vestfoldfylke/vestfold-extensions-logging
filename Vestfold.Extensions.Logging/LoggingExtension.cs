@@ -118,14 +118,15 @@ public static class LoggingExtension
         var minimumLevelOverrideKey = Constants.ConfigurationKeys.SerilogMinimumLevelOverrideKey;
 
         List<(string key, LogEventLevel level)> minimumLevelOverrides = [];
-        foreach (var child in config.AsEnumerable().Where(c => c.Key.StartsWith(minimumLevelOverrideKey)))
+        foreach (var child in config.AsEnumerable().Where(c => c.Key.StartsWith(minimumLevelOverrideKey) && !string.IsNullOrWhiteSpace(c.Value)))
         {
-            var key = Constants.ConfigurationKeys.ConvertAzureFriendlyKeyName(child.Key.Replace(minimumLevelOverrideKey, ""));
             if (!Enum.TryParse(child.Value, out LogEventLevel level))
             {
-                throw new InvalidOperationException($"Invalid value for {child.Key} in configuration");
+                level = LogEventLevel.Information;
+                Console.Error.WriteLine($"Invalid value for {child.Key} in configuration. It's value has been set to 'Information'!");
             }
 
+            var key = Constants.ConfigurationKeys.ConvertAzureFriendlyKeyName(child.Key.Replace(minimumLevelOverrideKey, ""));
             minimumLevelOverrides.Add((key, level));
         }
         
