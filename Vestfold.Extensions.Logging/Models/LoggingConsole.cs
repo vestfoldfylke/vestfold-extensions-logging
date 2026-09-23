@@ -9,6 +9,7 @@ internal record LoggingConsole : ISerilogSinkConfiguration
     public bool Enabled => true;
     public string[] PropertiesToExclude { get; } = [];
     public string[] PropertiesToInclude { get; } = [];
-    
+    public LogEventLevel? AlwaysIncludeAtOrAboveLevel { get; }
+
     internal static LogEventLevel DefaultMinimumLevel => LogEventLevel.Debug;
 }

@@ -12,7 +12,8 @@ internal record LoggingFile : ISerilogSinkConfiguration
     public bool Enabled => !string.IsNullOrWhiteSpace(Path);
     public string[] PropertiesToExclude { get; } = [];
     public string[] PropertiesToInclude { get; } = [];
-    
+    public LogEventLevel? AlwaysIncludeAtOrAboveLevel { get; }
+
     internal static LogEventLevel DefaultMinimumLevel => LogEventLevel.Warning;
     internal static RollingInterval DefaultRollingInterval => RollingInterval.Day;
 }

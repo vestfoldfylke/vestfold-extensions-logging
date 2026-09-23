@@ -11,6 +11,7 @@ internal record LoggingBetterStack : ISerilogSinkConfiguration
     public bool Enabled => !string.IsNullOrWhiteSpace(Endpoint) && !string.IsNullOrWhiteSpace(SourceToken);
     public string[] PropertiesToExclude { get; } = [];
     public string[] PropertiesToInclude { get; } = [];
-    
+    public LogEventLevel? AlwaysIncludeAtOrAboveLevel { get; }
+
     internal static LogEventLevel DefaultMinimumLevel => LogEventLevel.Information;
 }

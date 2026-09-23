@@ -13,6 +13,7 @@ internal record LoggingAzureLogAnalytics : ISerilogSinkConfiguration
     public bool Enabled => Credential is { ClientId: not null, ClientSecret: not null, Endpoint: not null, ImmutableId: not null, StreamName: not null, TenantId: not null };
     public string[] PropertiesToExclude { get; } = [];
     public string[] PropertiesToInclude { get; } = [ Constants.Properties.SecurityAudit ];
-    
+    public LogEventLevel? AlwaysIncludeAtOrAboveLevel { get; }
+
     internal static LogEventLevel DefaultMinimumLevel => LogEventLevel.Information;
 }

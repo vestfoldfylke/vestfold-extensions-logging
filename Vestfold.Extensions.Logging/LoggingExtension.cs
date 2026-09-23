@@ -57,7 +57,8 @@ public static class LoggingExtension
                     .WriteTo.Logger(loggerConfig => loggerConfig
                         .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent,
                             loggingValues.AzureLogAnalytics.PropertiesToInclude,
-                            loggingValues.AzureLogAnalytics.PropertiesToExclude))
+                            loggingValues.AzureLogAnalytics.PropertiesToExclude,
+                            loggingValues.AzureLogAnalytics.AlwaysIncludeAtOrAboveLevel))
                         .WriteTo.Sink(sink, new BatchingOptions
                         {
                             BatchSizeLimit = loggingValues.AzureLogAnalytics.BatchSize,
@@ -71,7 +72,7 @@ public static class LoggingExtension
             {
                 loggerConfiguration
                     .WriteTo.Logger(loggerConfig => loggerConfig
-                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.BetterStack.PropertiesToInclude, loggingValues.BetterStack.PropertiesToExclude))
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.BetterStack.PropertiesToInclude, loggingValues.BetterStack.PropertiesToExclude, loggingValues.BetterStack.AlwaysIncludeAtOrAboveLevel))
                         .WriteTo.BetterStack(
                             loggingValues.BetterStack.SourceToken!,
                             loggingValues.BetterStack.Endpoint!,
@@ -82,7 +83,7 @@ public static class LoggingExtension
             {
                 loggerConfiguration
                     .WriteTo.Logger(loggerConfig => loggerConfig
-                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.File.PropertiesToInclude, loggingValues.File.PropertiesToExclude))
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.File.PropertiesToInclude, loggingValues.File.PropertiesToExclude, loggingValues.File.AlwaysIncludeAtOrAboveLevel))
                         .WriteTo.File(
                             loggingValues.File.Path!,
                             restrictedToMinimumLevel: loggingValues.File.MinimumLevel,
@@ -94,7 +95,7 @@ public static class LoggingExtension
             {
                 loggerConfiguration
                     .WriteTo.Logger(loggerConfig => loggerConfig
-                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.MicrosoftTeams.PropertiesToInclude, loggingValues.MicrosoftTeams.PropertiesToExclude))
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.MicrosoftTeams.PropertiesToInclude, loggingValues.MicrosoftTeams.PropertiesToExclude, loggingValues.MicrosoftTeams.AlwaysIncludeAtOrAboveLevel))
                         .WriteTo.MicrosoftTeams(
                             loggingValues.MicrosoftTeams.WebhookUrl!,
                             usePowerAutomateWorkflows: loggingValues.MicrosoftTeams.UseWorkflows,
@@ -225,9 +226,10 @@ public static class LoggingExtension
         };
     }
     
-    internal static readonly Func<LogEvent, string[], string[], bool> LoggerFilter = (logEvent, propertiesToInclude, propertiesToExclude) =>
+    internal static readonly Func<LogEvent, string[], string[], LogEventLevel?, bool> LoggerFilter = (logEvent, propertiesToInclude, propertiesToExclude, alwaysIncludeAtOrAboveLevel) =>
     {
         var include = propertiesToInclude.Length == 0;
+        var bypassExclude = alwaysIncludeAtOrAboveLevel.HasValue && logEvent.Level >= alwaysIncludeAtOrAboveLevel.Value;
         var exclude = false;
 
         foreach (var property in logEvent.Properties)
@@ -236,8 +238,8 @@ public static class LoggingExtension
             {
                 include = true;
             }
-            
-            if (!exclude && propertiesToExclude.Contains(property.Key))
+
+            if (!exclude && !bypassExclude && propertiesToExclude.Contains(property.Key))
             {
                 exclude = true;
             }

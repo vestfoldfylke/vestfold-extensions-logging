@@ -12,6 +12,7 @@ internal record LoggingMicrosoftTeams : ISerilogSinkConfiguration
     public bool Enabled => !string.IsNullOrWhiteSpace(WebhookUrl);
     public string[] PropertiesToExclude { get; } = [ Constants.Properties.SecurityAudit ];
     public string[] PropertiesToInclude { get; } = [];
-    
+    public LogEventLevel? AlwaysIncludeAtOrAboveLevel => MinimumLevel;
+
     internal static LogEventLevel DefaultMinimumLevel => LogEventLevel.Warning;
 }

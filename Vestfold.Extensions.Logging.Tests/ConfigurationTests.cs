@@ -99,12 +99,12 @@ public class ConfigurationTests
     public void AzureLogAnalytics_Should_Only_Allow_SecurityAudit_Property_To_Be_Logged()
     {
         var loggingValue = new LoggingAzureLogAnalytics();
-        
+
         var securityAuditEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test security audit event", []), CreateLogEventProperties((Constants.Properties.SecurityAudit, true)));
         var entraIdEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test Entra ID event", []), CreateLogEventProperties());
-        
-        Assert.True(LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
-        Assert.False(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
+
+        Assert.True(LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
+        Assert.False(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
     }
     
     [Theory]
@@ -167,12 +167,12 @@ public class ConfigurationTests
     public void BetterStack_Should_Allow_All_Properties_To_Be_Logged()
     {
         var loggingValue = new LoggingBetterStack();
-        
+
         var securityAuditEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test security audit event", []), CreateLogEventProperties((Constants.Properties.SecurityAudit, true)));
         var entraIdEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test Entra ID event", []), CreateLogEventProperties());
-        
-        Assert.True(LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
-        Assert.True(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
+
+        Assert.True(LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
+        Assert.True(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
     }
     
     [Theory]
@@ -213,12 +213,12 @@ public class ConfigurationTests
     public void Console_Should_Allow_All_Properties_To_Be_Logged()
     {
         var loggingValue = new LoggingConsole();
-        
+
         var securityAuditEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test security audit event", []), CreateLogEventProperties((Constants.Properties.SecurityAudit, true)));
         var entraIdEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test Entra ID event", []), CreateLogEventProperties());
-        
-        Assert.True(LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
-        Assert.True(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
+
+        Assert.True(LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
+        Assert.True(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
     }
     
     [Theory]
@@ -282,12 +282,12 @@ public class ConfigurationTests
     public void File_Should_Allow_All_Properties_To_Be_Logged()
     {
         var loggingValue = new LoggingFile();
-        
+
         var securityAuditEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test security audit event", []), CreateLogEventProperties((Constants.Properties.SecurityAudit, true)));
         var entraIdEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test Entra ID event", []), CreateLogEventProperties());
-        
-        Assert.True(LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
-        Assert.True(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
+
+        Assert.True(LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
+        Assert.True(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
     }
     
     [Theory]
@@ -351,16 +351,39 @@ public class ConfigurationTests
         AssertMinimumLevelOverrides(loggingValues);
     }
     
-    [Fact]
-    public void MicrosoftTeams_Should_Allow_All_Properties_To_Be_Logged()
+    [Theory]
+    [InlineData(LogEventLevel.Verbose, LogEventLevel.Warning, false)]
+    [InlineData(LogEventLevel.Debug, LogEventLevel.Warning, false)]
+    [InlineData(LogEventLevel.Information, LogEventLevel.Warning, false)]
+    [InlineData(LogEventLevel.Warning, LogEventLevel.Warning, true)]
+    [InlineData(LogEventLevel.Error, LogEventLevel.Warning, true)]
+    [InlineData(LogEventLevel.Fatal, LogEventLevel.Warning, true)]
+    [InlineData(LogEventLevel.Warning, LogEventLevel.Error, false)]
+    [InlineData(LogEventLevel.Error, LogEventLevel.Error, true)]
+    [InlineData(LogEventLevel.Fatal, LogEventLevel.Error, true)]
+    public void MicrosoftTeams_Should_Pass_SecurityAudit_At_Or_Above_Configured_MinimumLevel(LogEventLevel eventLevel, LogEventLevel minimumLevel, bool expectedPass)
     {
-        var loggingValue = new LoggingMicrosoftTeams();
-        
-        var securityAuditEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test security audit event", []), CreateLogEventProperties((Constants.Properties.SecurityAudit, true)));
-        var entraIdEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("Test Entra ID event", []), CreateLogEventProperties());
-        
-        Assert.False(LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
-        Assert.True(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude));
+        var loggingValue = new LoggingMicrosoftTeams { MinimumLevel = minimumLevel };
+
+        var securityAuditEvent = new LogEvent(DateTimeOffset.Now, eventLevel, null, new MessageTemplate("Test security audit event", []), CreateLogEventProperties((Constants.Properties.SecurityAudit, true)));
+
+        Assert.Equal(expectedPass, LoggingExtension.LoggerFilter(securityAuditEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
+    }
+
+    [Theory]
+    [InlineData(LogEventLevel.Verbose)]
+    [InlineData(LogEventLevel.Debug)]
+    [InlineData(LogEventLevel.Information)]
+    [InlineData(LogEventLevel.Warning)]
+    [InlineData(LogEventLevel.Error)]
+    [InlineData(LogEventLevel.Fatal)]
+    public void MicrosoftTeams_Should_Always_Pass_Non_SecurityAudit_Events(LogEventLevel eventLevel)
+    {
+        var loggingValue = new LoggingMicrosoftTeams { MinimumLevel = LogEventLevel.Warning };
+
+        var entraIdEvent = new LogEvent(DateTimeOffset.Now, eventLevel, null, new MessageTemplate("Test Entra ID event", []), CreateLogEventProperties());
+
+        Assert.True(LoggingExtension.LoggerFilter(entraIdEvent, loggingValue.PropertiesToInclude, loggingValue.PropertiesToExclude, loggingValue.AlwaysIncludeAtOrAboveLevel));
     }
 
     private static void AssertConfigAppNameAndVersion(LoggingValues loggingValues, string appName, string version, bool expectConfigValues)
