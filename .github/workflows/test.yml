@@ -1,4 +1,4 @@
-name: publish
+name: PR test
 
 on:
   pull_request: 
