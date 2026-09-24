@@ -8,9 +8,12 @@ internal record LoggingAzureLogAnalytics : ISerilogSinkConfiguration
     internal int BatchSize { get; init; } = 100; // Seems to be the default value in the sink
     internal int BufferSize { get; init; } = 5000; // Seems to be the default value in the sink
     internal int PeriodSeconds { get; init; } = 30;
-    internal LogEventLevel MinimumLevel { get; init; } = LogEventLevel.Information;
+    internal LogEventLevel MinimumLevel { get; init; }
 
     public bool Enabled => Credential is { ClientId: not null, ClientSecret: not null, Endpoint: not null, ImmutableId: not null, StreamName: not null, TenantId: not null };
     public string[] PropertiesToExclude { get; } = [];
     public string[] PropertiesToInclude { get; } = [ Constants.Properties.SecurityAudit ];
+    public LogEventLevel? AlwaysIncludeAtOrAboveLevel { get; }
+
+    internal static LogEventLevel DefaultMinimumLevel => LogEventLevel.Information;
 }

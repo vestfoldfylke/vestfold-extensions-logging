@@ -189,3 +189,18 @@ using (LogContext.PushProperty(Vestfold.Extensions.Logging.Constants.Properties.
 
 Log.Warning("This log will not be sent to the AzureLogAnalytics sink since SecurityAudit property is not set");
 ```
+
+### Routing rules for `SecurityAudit`
+
+> [!IMPORTANT]
+> `LogContext.PushProperty` (and `GlobalLogContext.PushProperty`) attach the property to **every** log event emitted inside the scope — including `Log.Warning`, `Log.Error`, exception logs, and anything logged by code called from inside the block. Keep `SecurityAudit` scopes as narrow as possible around the specific audit line you want to route.
+
+The `SecurityAudit` property changes where a log event is delivered:
+
+| Sink                         | Events **without** `SecurityAudit`    | Events **with** `SecurityAudit`                             |
+|------------------------------|---------------------------------------|-------------------------------------------------------------|
+| Console / BetterStack / File | Delivered (subject to `MinimumLevel`) | Delivered (subject to `MinimumLevel`)                       |
+| Azure Log Analytics          | Not delivered                         | Delivered (subject to `MinimumLevel`)                       |
+| Microsoft Teams              | Delivered (subject to `MinimumLevel`) | Delivered (subject to `MinimumLevel`)                       |
+
+The Teams sink honours its configured `MinimumLevel` for every event, whether or not `SecurityAudit` is set — so a `SecurityAudit` scope never silences an operational alert that would otherwise reach Teams. If you set `MicrosoftTeams__MinimumLevel = Warning`, warnings inside a `SecurityAudit` scope still reach Teams; if you set it to `Error`, only errors do.

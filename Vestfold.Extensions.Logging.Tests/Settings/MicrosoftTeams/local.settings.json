@@ -4,6 +4,6 @@
   "MicrosoftTeams__WebhookUrl": "https://outlook.office.com/webhook/...",
   "MicrosoftTeams__UseWorkflows": "true",
   "MicrosoftTeams__TitleTemplate": "Test",
-  "MicrosoftTeams__MinimumLevel": "Error",
+  "MicrosoftTeams__MinimumLevel": "error",
   "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
 }

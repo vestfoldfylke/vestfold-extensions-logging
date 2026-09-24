@@ -18,6 +18,8 @@ public static class LoggingExtension
 {
     public static ILoggingBuilder AddVestfoldLogging(this ILoggingBuilder loggingBuilder)
     {
+        Serilog.Debugging.SelfLog.Enable(Console.Error);
+
         loggingBuilder.Services.AddSerilog((services, loggerConfiguration) =>
         {
             var config = services.GetRequiredService<IConfiguration>();
@@ -55,7 +57,8 @@ public static class LoggingExtension
                     .WriteTo.Logger(loggerConfig => loggerConfig
                         .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent,
                             loggingValues.AzureLogAnalytics.PropertiesToInclude,
-                            loggingValues.AzureLogAnalytics.PropertiesToExclude))
+                            loggingValues.AzureLogAnalytics.PropertiesToExclude,
+                            loggingValues.AzureLogAnalytics.AlwaysIncludeAtOrAboveLevel))
                         .WriteTo.Sink(sink, new BatchingOptions
                         {
                             BatchSizeLimit = loggingValues.AzureLogAnalytics.BatchSize,
@@ -69,7 +72,7 @@ public static class LoggingExtension
             {
                 loggerConfiguration
                     .WriteTo.Logger(loggerConfig => loggerConfig
-                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.BetterStack.PropertiesToInclude, loggingValues.BetterStack.PropertiesToExclude))
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.BetterStack.PropertiesToInclude, loggingValues.BetterStack.PropertiesToExclude, loggingValues.BetterStack.AlwaysIncludeAtOrAboveLevel))
                         .WriteTo.BetterStack(
                             loggingValues.BetterStack.SourceToken!,
                             loggingValues.BetterStack.Endpoint!,
@@ -80,7 +83,7 @@ public static class LoggingExtension
             {
                 loggerConfiguration
                     .WriteTo.Logger(loggerConfig => loggerConfig
-                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.File.PropertiesToInclude, loggingValues.File.PropertiesToExclude))
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.File.PropertiesToInclude, loggingValues.File.PropertiesToExclude, loggingValues.File.AlwaysIncludeAtOrAboveLevel))
                         .WriteTo.File(
                             loggingValues.File.Path!,
                             restrictedToMinimumLevel: loggingValues.File.MinimumLevel,
@@ -92,7 +95,7 @@ public static class LoggingExtension
             {
                 loggerConfiguration
                     .WriteTo.Logger(loggerConfig => loggerConfig
-                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.MicrosoftTeams.PropertiesToInclude, loggingValues.MicrosoftTeams.PropertiesToExclude))
+                        .Filter.ByIncludingOnly(logEvent => LoggerFilter(logEvent, loggingValues.MicrosoftTeams.PropertiesToInclude, loggingValues.MicrosoftTeams.PropertiesToExclude, loggingValues.MicrosoftTeams.AlwaysIncludeAtOrAboveLevel))
                         .WriteTo.MicrosoftTeams(
                             loggingValues.MicrosoftTeams.WebhookUrl!,
                             usePowerAutomateWorkflows: loggingValues.MicrosoftTeams.UseWorkflows,
@@ -118,14 +121,15 @@ public static class LoggingExtension
         var minimumLevelOverrideKey = Constants.ConfigurationKeys.SerilogMinimumLevelOverrideKey;
 
         List<(string key, LogEventLevel level)> minimumLevelOverrides = [];
-        foreach (var child in config.AsEnumerable().Where(c => c.Key.StartsWith(minimumLevelOverrideKey)))
+        foreach (var child in config.AsEnumerable().Where(c => c.Key.StartsWith(minimumLevelOverrideKey) && !string.IsNullOrWhiteSpace(c.Value)))
         {
-            var key = Constants.ConfigurationKeys.ConvertAzureFriendlyKeyName(child.Key.Replace(minimumLevelOverrideKey, ""));
             if (!Enum.TryParse(child.Value, out LogEventLevel level))
             {
-                throw new InvalidOperationException($"Invalid value for {child.Key} in configuration");
+                level = LogEventLevel.Information;
+                Console.Error.WriteLine($"Invalid value for {child.Key} in configuration. It's value has been set to 'Information'!");
             }
 
+            var key = Constants.ConfigurationKeys.ConvertAzureFriendlyKeyName(child.Key.Replace(minimumLevelOverrideKey, ""));
             minimumLevelOverrides.Add((key, level));
         }
         
@@ -154,23 +158,23 @@ public static class LoggingExtension
             }
             : null;
         
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.AzureLogAnalyticsMinimumLevel], out LogEventLevel azureLogAnalyticsMinimumLevel);
+        var azureLogAnalyticsMinimumLevel = GetParsedConfigurationValue(config, Constants.ConfigurationKeys.AzureLogAnalyticsMinimumLevel, LoggingAzureLogAnalytics.DefaultMinimumLevel);
 
         // Console
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.ConsoleMinimumLevel], out LogEventLevel consoleMinimumLevel);
+        var consoleMinimumLevel = GetParsedConfigurationValue(config, Constants.ConfigurationKeys.ConsoleMinimumLevel, LoggingConsole.DefaultMinimumLevel);
         
         // BetterStack
         var betterStackEndpoint = config[Constants.ConfigurationKeys.BetterStackEndpoint];
         var betterStackSourceToken = config[Constants.ConfigurationKeys.BetterStackSourceToken];
 
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.BetterStackMinimumLevel], out LogEventLevel betterStackMinimumLevel);
+        var betterStackMinimumLevel = GetParsedConfigurationValue(config, Constants.ConfigurationKeys.BetterStackMinimumLevel, LoggingBetterStack.DefaultMinimumLevel);
         
-        // FilePath
+        // File
         var filePath = config[Constants.ConfigurationKeys.FilePath];
 
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileMinimumLevel], out LogEventLevel fileMinimumLevel);
+        var fileMinimumLevel = GetParsedConfigurationValue(config, Constants.ConfigurationKeys.FileMinimumLevel, LoggingFile.DefaultMinimumLevel);
 
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.FileRollingInterval], out RollingInterval fileRollingInterval);
+        var fileRollingInterval = GetParsedConfigurationValue(config, Constants.ConfigurationKeys.FileRollingInterval, LoggingFile.DefaultRollingInterval);
         
         // Microsoft Teams
         var microsoftTeamsWebhookUrl = config[Constants.ConfigurationKeys.MicrosoftTeamsWebhookUrl];
@@ -181,7 +185,7 @@ public static class LoggingExtension
             microsoftTeamsUseWorkflows = true;
         }
 
-        _ = Enum.TryParse(config[Constants.ConfigurationKeys.MicrosoftTeamsMinimumLevel], out LogEventLevel microsoftTeamsMinimumLevel);
+        var microsoftTeamsMinimumLevel = GetParsedConfigurationValue(config, Constants.ConfigurationKeys.MicrosoftTeamsMinimumLevel, LoggingMicrosoftTeams.DefaultMinimumLevel);
         
         return new LoggingValues
         {
@@ -222,9 +226,10 @@ public static class LoggingExtension
         };
     }
     
-    internal static readonly Func<LogEvent, string[], string[], bool> LoggerFilter = (logEvent, propertiesToInclude, propertiesToExclude) =>
+    internal static readonly Func<LogEvent, string[], string[], LogEventLevel?, bool> LoggerFilter = (logEvent, propertiesToInclude, propertiesToExclude, alwaysIncludeAtOrAboveLevel) =>
     {
         var include = propertiesToInclude.Length == 0;
+        var bypassExclude = alwaysIncludeAtOrAboveLevel.HasValue && logEvent.Level >= alwaysIncludeAtOrAboveLevel.Value;
         var exclude = false;
 
         foreach (var property in logEvent.Properties)
@@ -233,8 +238,8 @@ public static class LoggingExtension
             {
                 include = true;
             }
-            
-            if (!exclude && propertiesToExclude.Contains(property.Key))
+
+            if (!exclude && !bypassExclude && propertiesToExclude.Contains(property.Key))
             {
                 exclude = true;
             }
@@ -259,5 +264,18 @@ public static class LoggingExtension
         }
 
         return informationalVersion;
+    }
+
+    private static T GetParsedConfigurationValue<T>(IConfiguration configuration, string key, T defaultValue) where T : struct
+    {
+        var configValue = configuration[key];
+        if (string.IsNullOrWhiteSpace(configValue))
+        {
+            return defaultValue;
+        }
+
+        return Enum.TryParse(configValue, ignoreCase: true, out T parsedLevel)
+            ? parsedLevel
+            : throw new InvalidOperationException($"Invalid value for {key} in configuration");
     }
 }

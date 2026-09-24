@@ -1,5 +1,3 @@
 {
-  "Serilog__File__MinimumLevel": "Error",
-  "Serilog__File__RollingInterval": "Minute",
   "Serilog__MinimumLevel__Override__Microsoft_Hosting": "Error"
 }
